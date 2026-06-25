@@ -1,0 +1,6 @@
+{
+  "$comment": "PLACEHOLDER. Replace with the real knowledge-base schema. This is the contract that distill/ targets and that build/ + eval/ assume. Changing it is a contract change: re-distill knowledge, and revisit the fact-gate/engine.",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "knowledge",
+  "type": "object"
+}

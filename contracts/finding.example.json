@@ -1,0 +1,16 @@
+{
+  "finding_id": "f-2026-0623-007",
+  "scenario": "A7-wrong-machine",
+  "run": {
+    "mary_yml": "v5.1",
+    "knowledge": "DMC80FD-01@2026-06-23.a",
+    "app_id": "1d5aed45-1715-47cb-bbfd-34869cb45889"
+  },
+  "verdict": "fail",
+  "fault_class": "logic",
+  "where": "engine MATCH — bunched tested before plausibility floor",
+  "evidence": "press-jam scored all-near-zero; offered 3 CNC modes; sep=0.0, chosen=null",
+  "expected": "DECLINE / redirect",
+  "severity": "P1",
+  "status": "draft"
+}

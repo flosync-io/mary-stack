@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'MEMORY BANK — before starting, read progress.md and notes.md in the block you are working in (build/ distill/ eval/). Run the update-memory skill when you wrap up. Recent session log:'; tail -n 20 \"$CLAUDE_PROJECT_DIR/.claude/session-log.md\" 2>/dev/null; true"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ printf '\\n## %s\\n' \"$(date '+%Y-%m-%d %H:%M')\"; git -C \"$CLAUDE_PROJECT_DIR\" diff --name-only 2>/dev/null; } >> \"$CLAUDE_PROJECT_DIR/.claude/session-log.md\"; true"
+          }
+        ]
+      }
+    ]
+  }
+}

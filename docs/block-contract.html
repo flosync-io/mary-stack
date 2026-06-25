@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three blocks, one contract — Machine Mary</title>
+<style>
+  :root{
+    --bg:#14110f; --panel:#1d1916; --panel2:#241f1b; --ink:#f4efe9; --mut:#b3a99e; --faint:#8a8077;
+    --accent:#e8623d; --accent2:#d9a441; --line:#322b25;
+    --data:#d9a441; --databg:#2a2413; --dataln:#4a3d1c;     /* block 2 */
+    --logic:#e0685c; --logicbg:#2a1715; --logicln:#4d2722;  /* block 1 */
+    --prompt:#6fa8d6; --promptbg:#141d24; --promptln:#2a3d50;/* block 1 seams */
+    --spine:#5fae7a; --spinebg:#16241c; --spineln:#27452f;  /* knowledge.json */
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;font-size:15px;
+       background-image:radial-gradient(900px 400px at 80% -10%, #1d1611 0%, transparent 60%)}
+  .wrap{max-width:980px;margin:0 auto;padding:30px 22px 70px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  h1{font-size:clamp(28px,5vw,40px);line-height:1.05;margin:12px 0 6px;font-weight:800;letter-spacing:-.02em}
+  h1 .q{color:var(--faint);font-weight:300}
+  .lede{color:var(--mut);font-size:16px;max-width:62ch;margin:6px 0 0}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .rule{height:1px;background:var(--line);margin:30px 0;border:0}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:0 0 12px}
+
+  /* ---- spine ---- */
+  .spine{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch;gap:0;margin:4px 0 2px}
+  .blk{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 13px;position:relative}
+  .blk .n{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.1em}
+  .blk h3{margin:3px 0 4px;font-size:16px;letter-spacing:-.01em}
+  .blk p{margin:0;color:var(--mut);font-size:12.5px}
+  .blk .tag{display:inline-block;margin-top:9px;font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:5px;
+            background:var(--panel2);border:1px solid var(--line);color:var(--faint)}
+  .b1{border-color:var(--logicln)} .b1 .n{color:var(--logic)}
+  .b2{border-color:var(--dataln)} .b2 .n{color:var(--data)}
+  .b3{border-color:#3a3050} .b3 .n{color:#a88bd4}
+  .flow{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:96px;padding:0 4px;text-align:center}
+  .flow .pipe{font-family:var(--mono);font-size:11px;color:var(--spine);background:var(--spinebg);border:1px solid var(--spineln);
+              border-radius:20px;padding:3px 10px;white-space:nowrap}
+  .flow .arr{color:var(--faint);font-size:18px;line-height:1;margin:6px 0}
+  .flow .lbl{font-size:10.5px;color:var(--faint);margin-top:5px;max-width:90px}
+
+  .spineback{margin-top:14px;display:flex;align-items:center;gap:10px;justify-content:center;color:var(--faint);
+             font-family:var(--mono);font-size:11.5px;flex-wrap:wrap}
+  .spineback .fb{color:var(--accent2)}
+
+  /* ---- artifacts ---- */
+  .arts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .art{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 15px}
+  .art .fname{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:600}
+  .art .edge{font-size:11px;color:var(--faint);margin:2px 0 10px;font-family:var(--mono)}
+  .art ul{margin:0;padding:0;list-style:none}
+  .art li{font-family:var(--mono);font-size:12px;color:var(--mut);padding:3px 0;border-top:1px dashed var(--line)}
+  .art li:first-child{border-top:0}
+  .art li.key{color:var(--ink)}
+  .art li.key::before{content:"●";color:var(--accent);font-size:9px;margin-right:6px;vertical-align:1px}
+  .art .role{display:inline-block;margin-bottom:10px;font-size:10.5px;font-family:var(--mono);letter-spacing:.04em;
+             padding:2px 7px;border-radius:5px}
+  .role.spineR{background:var(--spinebg);color:var(--spine);border:1px solid var(--spineln)}
+  .role.keyR{background:#241712;color:var(--accent);border:1px solid var(--logicln)}
+
+  /* ---- rules / router ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 17px}
+  .panel h4{margin:0 0 4px;font-size:15px}
+  .panel .num{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em}
+  .panel p{margin:6px 0 0;color:var(--mut);font-size:13px}
+  .panel code{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);
+              padding:1px 5px;border-radius:4px;color:var(--ink)}
+
+  .router{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  .chan{display:grid;grid-template-columns:84px 1fr auto;align-items:center;gap:10px;
+        border-radius:8px;padding:8px 11px;font-size:12.5px}
+  .chan .cl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .chan .to{font-family:var(--mono);font-size:11px;color:var(--ink);white-space:nowrap}
+  .chan.data{background:var(--databg);border:1px solid var(--dataln)} .chan.data .cl{color:var(--data)}
+  .chan.logic{background:var(--logicbg);border:1px solid var(--logicln)} .chan.logic .cl{color:var(--logic)}
+  .chan.prompt{background:var(--promptbg);border:1px solid var(--promptln)} .chan.prompt .cl{color:var(--prompt)}
+  .chan .desc{color:var(--mut)}
+
+  /* ---- loop ---- */
+  .loop{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+  .ab{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;position:relative}
+  .ab .k{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+  .ab.B{border-color:var(--promptln)} .ab.B .k{color:var(--prompt)}
+  .ab.A{border-color:var(--spineln)} .ab.A .k{color:var(--spine)}
+  .ab h4{margin:6px 0 4px;font-size:16px}
+  .ab p{margin:0;color:var(--mut);font-size:13px}
+  .ab .pill{display:inline-block;margin-top:10px;font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:20px}
+  .ab.B .pill{background:var(--promptbg);color:var(--prompt);border:1px solid var(--promptln)}
+  .ab.A .pill{background:var(--spinebg);color:var(--spine);border:1px solid var(--spineln)}
+  .loopline{font-family:var(--mono);font-size:12px;color:var(--faint);text-align:center;margin:12px 0 0}
+  .loopline b{color:var(--accent2)}
+
+  .files{font-family:var(--mono);font-size:12px;color:var(--mut);margin-top:6px}
+  .files span{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+              padding:3px 8px;margin:3px 5px 0 0;color:var(--ink)}
+  footer{margin-top:34px;color:var(--faint);font-size:12px;font-family:var(--mono);letter-spacing:.04em}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(8px);animation:rise .5s ease forwards}
+  .rv:nth-child(2){animation-delay:.04s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.rv{animation:none;opacity:1;transform:none}}
+
+  a:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+  @media(max-width:760px){
+    .spine{grid-template-columns:1fr}
+    .flow{flex-direction:row;gap:8px;min-width:0;padding:6px 0}
+    .flow .arr{transform:rotate(90deg);margin:0}
+    .arts{grid-template-columns:1fr}
+    .grid2,.loop{grid-template-columns:1fr}
+    .chan{grid-template-columns:74px 1fr;}
+    .chan .to{grid-column:1/-1;color:var(--faint)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="rv">
+    <div class="eyebrow">Flosync · Machine Mary · Dev contract</div>
+    <h1>Three blocks, one contract.<br><span class="q">Nothing integrates them — a schema does.</span></h1>
+    <p class="lede">The blocks never call each other. They pass <b>versioned files around one schema</b>. Fix four shapes and two rules, and the build/iterate loop closes — even when every handoff is done by hand.</p>
+  </header>
+
+  <hr class="rule">
+
+  <!-- SPINE -->
+  <p class="kicker">The spine — knowledge.json carries the truth</p>
+  <div class="spine rv">
+    <div class="blk b2">
+      <div class="n">BLOCK 2</div>
+      <h3>Distill</h3>
+      <p>Messy PDFs, video, audio → one schema-conformant knowledge base.</p>
+      <span class="tag">distill-knowledge</span>
+    </div>
+    <div class="flow">
+      <div class="pipe">knowledge.json</div>
+      <div class="arr">→</div>
+      <div class="lbl">truth + ground truth</div>
+    </div>
+    <div class="blk b1">
+      <div class="n">BLOCK 1</div>
+      <h3>Build Mary</h3>
+      <p>Tweak <code style="font-family:var(--mono);font-size:12px">mary.yml</code>, publish to Dify. Runs on the knowledge.</p>
+      <span class="tag">mary.yml → Dify</span>
+    </div>
+    <div class="flow">
+      <div class="pipe">run manifest</div>
+      <div class="arr">→</div>
+      <div class="lbl">the tested tuple</div>
+    </div>
+    <div class="blk b3">
+      <div class="n">BLOCK 3</div>
+      <h3>Alex evals</h3>
+      <p>Talks to the deployed Mary, grades it against the same knowledge.</p>
+      <span class="tag">mary-eval → Alex</span>
+    </div>
+  </div>
+  <div class="spineback rv">
+    <span class="fb">◀ findings</span> route back by fault class — Alex doesn't just score Mary, it assigns the bug.
+  </div>
+
+  <hr class="rule">
+
+  <!-- ARTIFACTS -->
+  <p class="kicker">The three boundary artifacts — fixed shapes, manual handoffs OK</p>
+  <div class="arts">
+    <div class="art rv">
+      <span class="role spineR">B2 → B1 + B3</span>
+      <div class="fname">knowledge.json</div>
+      <div class="edge">governed by schema.json</div>
+      <ul>
+        <li class="key">_meta.version</li>
+        <li class="key">_meta.sha256</li>
+        <li>failure_modes · checks</li>
+        <li>procedures · warnings</li>
+      </ul>
+    </div>
+    <div class="art rv">
+      <span class="role spineR">B1 → B3</span>
+      <div class="fname">run manifest</div>
+      <div class="edge">the keystone · written at publish</div>
+      <ul>
+        <li class="key">mary_yml_version</li>
+        <li class="key">knowledge_version</li>
+        <li>dify_app_id</li>
+        <li>schema_version</li>
+      </ul>
+    </div>
+    <div class="art rv">
+      <span class="role keyR">B3 → B1 + B2</span>
+      <div class="fname">finding</div>
+      <div class="edge">= your v5.2 issue, emitted by Alex</div>
+      <ul>
+        <li class="key">fault_class</li>
+        <li class="key">run (the manifest)</li>
+        <li>verdict · where · evidence</li>
+        <li>status: draft→…→closed</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- RULES -->
+  <p class="kicker">Two rules make it a system, not three projects</p>
+  <div class="grid2">
+    <div class="panel rv">
+      <div class="num">RULE 1</div>
+      <h4>Pin the version</h4>
+      <p>Mary's behaviour is <code>engine(mary.yml) × knowledge.json</code> — a cross-product. Every finding cites a <code>run</code>. No manifest, no finding. "Mary failed A7" is anecdote; <code>v5.1 × DMC80FD-01@2026-06-23.a failed A7</code> can be re-run and proven closed.</p>
+    </div>
+    <div class="panel rv">
+      <div class="num">RULE 2</div>
+      <h4>Route by fault class</h4>
+      <p>Your own maxim — every wrong move is <b style="color:var(--ink);font-weight:600">data, logic, or prompt</b> — is the router that sends a finding to the block that owns the fix:</p>
+      <div class="router">
+        <div class="chan data"><span class="cl">data</span><span class="desc">knowledge.json wrong / missing</span><span class="to">→ Block 2</span></div>
+        <div class="chan logic"><span class="cl">logic</span><span class="desc">engine moved wrong on good data</span><span class="to">→ Block 1 · engine</span></div>
+        <div class="chan prompt"><span class="cl">prompt</span><span class="desc">Interpret mis-typed / Render mis-phrased</span><span class="to">→ Block 1 · seams</span></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- LOOP -->
+  <p class="kicker">The loop actually closing — B discovers, A pins</p>
+  <div class="loop">
+    <div class="ab B rv">
+      <div class="k">KEY B · natural language</div>
+      <h4>Discover</h4>
+      <p>Live role-play explores Mary and surfaces a fault no script anticipated. Emits a finding.</p>
+      <span class="pill">exploratory · once</span>
+    </div>
+    <div class="ab A rv">
+      <div class="k">KEY A · scenarios.yml</div>
+      <h4>Pin</h4>
+      <p>After the fix is routed, made, and re-run, the discovering case becomes a scripted scenario that fails if the fault ever returns.</p>
+      <span class="pill">regression · forever</span>
+    </div>
+  </div>
+  <p class="loopline">discover (B) → route by <b>fault_class</b> → fix + bump version → re-run live → <b>promote to A</b> → closed</p>
+
+  <hr class="rule">
+
+  <p class="kicker">What the repo must hold</p>
+  <div class="files rv">
+    <span>contracts/schema.json</span>
+    <span>contracts/run-manifest.example.json</span>
+    <span>contracts/finding.example.json</span>
+    <span>knowledge/&lt;machine&gt;.json</span>
+    <span>scenarios.yml</span>
+    <span>findings/*.jsonl</span>
+  </div>
+
+  <footer>Four shapes · one spine · two rules — 2026-06-23, ahead of the repo-layout pass.</footer>
+
+</div>
+</body>
+</html>
