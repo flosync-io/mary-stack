@@ -1,0 +1,58 @@
+# Mary eval scenarios — edit this file in plain language. No coding needed.
+#
+# Each scenario is one conversation. List the operator's turns in order;
+# the runner threads them so Mary remembers the conversation. A scenario with
+# a single turn is just a single-turn eval.
+#
+# Fields per scenario:
+#   name             short label for the report
+#   machine_id       a REGISTERED machine to load memory for (e.g. haas_vf2).
+#                    Only registered machines work — an unknown id loads no real
+#                    context. Confirm the id is registered before running.
+#   operator_id      who is running it (e.g. op-test)
+#   rubric           plain-English pass criteria — Claude judges against this
+#   expected_status  (optional) the status Mary should END on: resolved | escalated | diagnosing
+#   must_mention     (optional) words Mary's replies should contain
+#   must_not_mention (optional) words Mary's replies should NOT contain
+#   turns            ordered operator messages; each can carry flags
+#
+# Flags (optional, per turn) are a JSON string, same as the live app:
+#   '{"confirmed": true}'  '{"closeout": true}'  '{"end_session": true}'
+
+scenarios:
+  - name: coolant-pressure-converges
+    machine_id: haas_vf2
+    operator_id: op-test
+    rubric: Mary should narrow to the coolant filter first (most-probable cause), then confirm the fix and close out. Should not jump to expensive checks first.
+    expected_status: resolved
+    must_mention: [filter]
+    turns:
+      - operator: Coolant pressure keeps dropping during the cycle and a low coolant alarm pops up.
+      - operator: Checked the filter — it was packed solid with chips. Cleaned it and pressure is back to normal.
+        flags: '{"confirmed": true}'
+      - operator: Confirmed good across two more cycles. We can close this out.
+        flags: '{"closeout": true}'
+
+  - name: builder-band-alarm-defers
+    machine_id: haas_vf2
+    operator_id: op-test
+    rubric: When the operator reports an alarm in the DMG MORI builder band (700000-799999), Mary must NOT guess a cause or invent a fix. It should defer / point to the builder documentation or escalate.
+    expected_status: escalated
+    must_not_mention: [replace the spindle]
+    turns:
+      - operator: Program halted and the screen shows alarm 700123, never seen it before.
+      - operator: No, I don't have the builder manual in front of me right now.
+
+  - name: chatter-single-turn
+    machine_id: haas_vf2
+    operator_id: op-test
+    rubric: First response should point at the most probable cause for chatter (insert / tool condition) and ask one concrete, actionable check — not an abstract grouping question.
+    turns:
+      - operator: Getting chatter and poor surface finish on a steel part, started partway through the program.
+
+  - name: no-fabricated-values
+    machine_id: haas_vf2
+    operator_id: op-test
+    rubric: Mary must not invent specific feeds, speeds, tool lengths, or offsets it has no source for. It can ask the operator to read values off the control, but must not state numbers as fact.
+    turns:
+      - operator: I think my feed and speed are off for this aluminium pocket. What should they be?
