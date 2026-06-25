@@ -5,43 +5,57 @@ promote.py — B-zero promotion: resolved runtime.json -> candidate knowledge.js
 What it does (no LLM, deterministic — runtime.json is already typed by the engine):
   1. Loads the current knowledge.json.
   2. For each RESOLVED runtime.json, derives one proposed change:
-       - existing FM match (chosen != null, sep >= floor)   -> ENRICH  (+provenance, +field note)
-         ...promoted to REVISE (flagged) if the resolution looks like it contradicts existing guidance
-       - novel (chosen == null or sep < floor)               -> ADD     (new FM skeleton)
+       - resolved + matched_fm present in knowledge.json -> ENRICH  (+provenance, +count; no content rewrite)
+         ...promoted to REVISE (flagged) if resolution_note hints a contradiction
+       - resolved + matched_fm null                      -> ADD     (new FM skeleton)
+       - not resolved                                    -> skip
   3. Writes changes.json + candidate.json (all changes applied, for reference).
   4. Generates review.html — the human (Denver) reviews, edits inline, approves;
      on approve the browser downloads the new, version-bumped knowledge.json + a decision log.
 
+Real runtime shape (ADR-0001):
+  status      "green" | "open" (real files); schema target is "resolved" | "open" | "unresolved"
+  matched_fm  slug or null
+  confirmed_cause slug or null
+  resolution_note operator's closing words
+  id          null today — use filename as conversation_id
+
 Usage:
-  python promote.py --knowledge sample/knowledge-DMC80FD-01.json \
-                    --runtime  sample/runtime \
+  python promote.py --knowledge sample/knowledge-DMC80FD-01.json \\
+                    --runtime  sample/real-runtime \\
                     --out      out
 """
 import argparse, json, os, glob, datetime, html
+from render import narrate
 
-DECLINE_FLOOR = 0.45  # mirror the engine constant
-CONTRADICT_HINTS = ("did not", "didn't", "not hold", "didn’t", "escalat", "recurred", "no longer", "wrong")
+# TODO: reconcile green→resolved at the N15 writer (ADR-0001 action 5)
+RESOLVED_STATUSES = ("green", "resolved")
+
+CONTRADICT_HINTS = ("did not", "didn't", "not hold", "didn't", "escalat", "recurred", "no longer", "wrong")
+
 
 def load(p):
     with open(p) as f: return json.load(f)
+
 
 def resolved_runtimes(path):
     files = [path] if os.path.isfile(path) else sorted(glob.glob(os.path.join(path, "*.json")))
     out = []
     for fp in files:
         d = load(fp)
-        if d.get("_meta", {}).get("status") in ("resolved", "escalated"):
+        if d.get("status") in RESOLVED_STATUSES:
             out.append((fp, d))
     return out
 
-def classify(ev, fm_index):
-    chosen = ev.get("chosen")
-    sep = ev.get("sep", 0.0)
-    res = (ev.get("resolution") or "").lower()
-    if chosen and sep >= DECLINE_FLOOR and chosen in fm_index:
-        contradicts = any(h in res for h in CONTRADICT_HINTS) or ev.get("status") == "escalated"
-        return ("revise" if contradicts else "enrich"), chosen
+
+def classify(rt, fm_index):
+    matched_fm = rt.get("matched_fm")
+    resolution_note = (rt.get("resolution_note") or "").lower()
+    if matched_fm and matched_fm in fm_index:
+        contradicts = any(h in resolution_note for h in CONTRADICT_HINTS)
+        return ("revise" if contradicts else "enrich"), matched_fm
     return "add", None
+
 
 def new_fm_id(symptom, existing):
     base = "fm_" + "_".join("".join(c for c in w if c.isalnum()) for w in symptom.lower().split()[:3])
@@ -50,42 +64,45 @@ def new_fm_id(symptom, existing):
         cand = f"{base}_{i}"; i += 1
     return cand
 
-def build_change(fp, rt, fm_index):
-    ev = rt.get("engine_evidence", {})
-    meta = rt.get("_meta", {})
-    conv = meta.get("conversation_id", "?")
-    op, target = classify(ev, fm_index)
+
+def build_change(fp, rt, fm_index, knowledge):
+    # conversation_id = filename since id is null in real files (ADR-0001)
+    conv = rt.get("id") or os.path.splitext(os.path.basename(fp))[0]
+    op, target = classify(rt, fm_index)
     grounding = {
         "conversation_id": conv,
-        "operator_id": meta.get("operator_id", "?"),
-        "symptom": ev.get("symptom", ""),
-        "resolution": ev.get("resolution", ""),
-        "ruled_out": ev.get("ruled_out", []),
-        "sep": ev.get("sep"),
-        "engine_status": ev.get("status"),
+        "operator_id": rt.get("operator_id", "?"),
+        "narrative": narrate(rt, knowledge),   # human story via render.py
+        "symptom": rt.get("reported", ""),
+        "resolution": rt.get("resolution_note", ""),
+        "ruled_out": rt.get("ruled_out", []),
     }
     if op == "add":
-        fid = new_fm_id(ev.get("symptom", "unknown"), fm_index)
+        fid = new_fm_id(rt.get("reported", "unknown"), fm_index)
         after = {
-            "id": fid, "name": ev.get("symptom", "")[:60].capitalize(),
-            "symptoms": [ev.get("symptom", "")], "checks": [],
-            "resolution": ev.get("resolution", ""), "escalate": ev.get("status") == "escalated",
-            "provenance": [conv], "evidence_count": 1,
+            "id": fid,
+            "name": (rt.get("reported", "")[:60].capitalize()),
+            "symptoms": [rt.get("reported", "")],
+            "checks": [],
+            "resolution": rt.get("resolution_note", ""),
+            "escalate": False,
+            "provenance": [conv],
+            "evidence_count": 1,
         }
         return {"op": "add", "target_id": fid, "before": None, "after": after, "grounding": grounding}
 
     before = json.loads(json.dumps(fm_index[target]))  # deep copy
-    after = json.loads(json.dumps(before))
+    after  = json.loads(json.dumps(before))
     if conv not in after.get("provenance", []):
         after.setdefault("provenance", []).append(conv)
     after["evidence_count"] = after.get("evidence_count", 0) + 1
-    note = f"[{conv}] {ev.get('resolution','')}"
+    note = f"[{conv}] {rt.get('resolution_note', '')}"
     after.setdefault("field_notes", []).append(note)
     if op == "revise":
-        after["resolution"] = ev.get("resolution", before.get("resolution", ""))
-        if ev.get("status") == "escalated":
-            after["escalate"] = True
+        # REVISE: surface the contradiction; Denver decides the final wording
+        after["resolution"] = rt.get("resolution_note", before.get("resolution", ""))
     return {"op": op, "target_id": target, "before": before, "after": after, "grounding": grounding}
+
 
 def apply_changes(knowledge, changes, approved_ids=None):
     k = json.loads(json.dumps(knowledge))
@@ -101,9 +118,9 @@ def apply_changes(knowledge, changes, approved_ids=None):
                 fms[idx[ch["target_id"]]] = ch["after"]
     return k
 
+
 def render_html(knowledge, changes, machine):
-    payload = json.dumps({"base": knowledge, "changes": changes,
-                          "machine": machine, "floor": DECLINE_FLOOR})
+    payload = json.dumps({"base": knowledge, "changes": changes, "machine": machine})
     today = datetime.date.today().isoformat()
     tmpl = HTML_TEMPLATE
     tmpl = tmpl.replace("__PAYLOAD__", payload)
@@ -111,6 +128,7 @@ def render_html(knowledge, changes, machine):
     tmpl = tmpl.replace("__DATE__", today)
     tmpl = tmpl.replace("__N__", str(len(changes)))
     return tmpl
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -121,10 +139,19 @@ def main():
     os.makedirs(a.out, exist_ok=True)
 
     knowledge = load(a.knowledge)
-    machine = knowledge.get("_meta", {}).get("machine_id", "unknown")
-    fm_index = {fm["id"]: fm for fm in knowledge.get("failure_modes", [])}
+    machine   = knowledge.get("_meta", {}).get("machine_id", "unknown")
+    fm_index  = {fm["id"]: fm for fm in knowledge.get("failure_modes", [])}
 
-    changes = [build_change(fp, rt, fm_index) for fp, rt in resolved_runtimes(a.runtime)]
+    resolved = resolved_runtimes(a.runtime)
+    total    = len(list(
+        load(fp) for fp in (
+            [a.runtime] if os.path.isfile(a.runtime)
+            else sorted(glob.glob(os.path.join(a.runtime, "*.json")))
+        )
+    ))
+    skipped  = total - len(resolved)
+
+    changes = [build_change(fp, rt, fm_index, knowledge) for fp, rt in resolved]
 
     with open(os.path.join(a.out, "changes.json"), "w") as f:
         json.dump(changes, f, indent=2)
@@ -135,10 +162,12 @@ def main():
 
     counts = {}
     for c in changes: counts[c["op"]] = counts.get(c["op"], 0) + 1
-    print(f"{len(changes)} proposed change(s): " + ", ".join(f"{v} {k}" for k, v in counts.items()))
+    summary = ", ".join(f"{v} {k}" for k, v in counts.items()) if counts else "none"
+    print(f"{len(changes)} proposed change(s): {summary}  |  {skipped} skipped (not resolved)")
     print(f"  out/review.html     <- open this; Denver reviews + approves")
     print(f"  out/candidate.json  <- all changes applied (reference)")
     print(f"  out/changes.json    <- the structured proposals")
+
 
 HTML_TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -163,13 +192,12 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
  .warn{margin-left:auto;color:var(--rev);font-size:12px;font-family:var(--mono)}
  .ground{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:12.5px;color:var(--mut);margin-bottom:10px}
  .ground b{color:var(--ink);font-weight:600}
- .ground .res{color:var(--ink)}
+ .ground .story{color:var(--ink);font-style:italic;margin:5px 0 3px;display:block}
  .cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
  @media(max-width:680px){.cols{grid-template-columns:1fr}}
  .collbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
  pre{background:#100d0b;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:var(--mono);font-size:11.5px;color:var(--mut);overflow:auto;margin:0;max-height:230px}
  textarea{width:100%;background:#100d0b;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:var(--mono);font-size:11.5px;color:var(--ink);min-height:160px;resize:vertical}
- .editlbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:10px 0 4px}
  .row{display:flex;align-items:center;gap:8px;margin-top:10px}
  .row input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
  .row label{font-size:13px;color:var(--ink)}
@@ -179,7 +207,6 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
  .btn{font-family:var(--sans);font-size:13px;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
  .count{font-family:var(--mono);font-size:12px;color:var(--faint)}
- .ok{color:var(--add)}
 </style></head><body><div class="wrap">
  <div class="eyebrow">Flosync · Machine Mary · knowledge promotion</div>
  <h1>Review proposed changes — __MACHINE__</h1>
@@ -204,7 +231,7 @@ function render(){
   const card=document.createElement("div");
   card.className="card"+(ch.op==="revise"?" revise":"");
   const g=ch.grounding;
-  const defChecked = ch.op!=="revise";   // revises require a deliberate check
+  const defChecked = ch.op!=="revise";
   const beforeBlock = ch.before ? `<div><div class="collbl">before</div><pre>${esc(pj(ch.before))}</pre></div>` : "";
   card.innerHTML=`
    <div class="top">
@@ -213,9 +240,8 @@ function render(){
      ${ch.op==="revise"?'<span class="warn">⚠ changes existing guidance — read carefully</span>':''}
    </div>
    <div class="ground">
-     from <b>${esc(g.conversation_id)}</b> (${esc(g.operator_id)}) · sep ${g.sep} · ${esc(g.engine_status||"")}<br>
-     symptom: ${esc(g.symptom)}<br>
-     resolution: <span class="res">${esc(g.resolution)}</span>
+     from <b>${esc(g.conversation_id)}</b> · operator: ${esc(g.operator_id)}<br>
+     <span class="story">${esc(g.narrative)}</span>
    </div>
    <div class="cols">
      ${beforeBlock}
@@ -249,7 +275,6 @@ function approve(){
   const edited=JSON.stringify(obj)!==JSON.stringify(ch.after);
   log.push({target:ch.target_id,op:ch.op,decision:"approved",edited:edited});applied++;
  });
- // version bump + provenance of the review itself
  const who=document.getElementById("who").value||"unknown";
  const stamp=new Date().toISOString();
  const prev=(k._meta&&k._meta.version)||null;
