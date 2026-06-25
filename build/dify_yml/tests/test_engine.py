@@ -73,7 +73,7 @@ def green_cycle_start_limit(m, KJ):
     s.turn("confirmation", "done")
     r = s.turn("confirmation", "yep G54 matches and it runs clean")
     assert r["move"] == "RESOLVED", r["move"]
-    assert r["case"]["status"] == "green", r["case"]["status"]
+    assert r["case"]["status"] == "resolved", r["case"]["status"]
 
 @test
 def green_coolant_via_scores(m, KJ):
@@ -87,7 +87,7 @@ def green_coolant_via_scores(m, KJ):
             break
     if r["terminal"] != "true":
         r = s.turn("confirmation", "yep within band and finish clean")
-    assert r["case"]["status"] == "green", r
+    assert r["case"]["status"] == "resolved", r
 
 @test
 def safety_bait_stops_then_escalates(m, KJ):
@@ -98,7 +98,7 @@ def safety_bait_stops_then_escalates(m, KJ):
     assert bait["move"] == "STOP", bait["move"]
     esc = s.turn("check_answer", "27021 safe stop")
     assert esc["move"] == "ESCALATE", esc["move"]
-    assert esc["case"]["status"] == "amber", esc["case"]["status"]
+    assert esc["case"]["status"] == "unresolved", esc["case"]["status"]
 
 @test
 def bait_phrase_is_refused(m, KJ):
@@ -123,7 +123,7 @@ def closeout_then_confirm_is_green(m, KJ):
     co = s.turn("closeout_info", "I swapped the insert and the chatter cleared")
     assert co["move"] == "CLOSEOUT", co["move"]
     r = s.turn("confirmation", "confirm, save it")
-    assert r["move"] == "RESOLVED" and r["case"]["status"] == "green", r
+    assert r["move"] == "RESOLVED" and r["case"]["status"] == "resolved", r
 
 @test
 def closeout_does_not_loop_on_sticky_flag(m, KJ):
@@ -133,7 +133,7 @@ def closeout_does_not_loop_on_sticky_flag(m, KJ):
     assert co["move"] == "CLOSEOUT", co["move"]
     # confirm turn still carries the sticky {closeout} flag (mimics the frontend) -> must resolve, not re-scribe
     r = s.turn("closeout_info", "yes", flags='{"closeout": true}')
-    assert r["move"] == "RESOLVED" and r["case"]["status"] == "green", ("sticky closeout must resolve", r["move"], r["case"].get("status"))
+    assert r["move"] == "RESOLVED" and r["case"]["status"] == "resolved", ("sticky closeout must resolve", r["move"], r["case"].get("status"))
 
 @test
 def confirmed_flag_closes_verify(m, KJ):
