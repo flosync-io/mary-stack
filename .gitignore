@@ -1,0 +1,6 @@
+# Local Claude Code memory breadcrumb — the durable record is each block's progress.md
+.claude/session-log.md
+.claude/settings.local.json
+
+# Live knowledge is stored in Supabase; commit only versioned snapshots you intend to pin
+# knowledge/*.local.json
