@@ -164,6 +164,16 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "Short canonical labels for this failure mode (e.g. 'chatter', 'coolant weak'). Complement to symptom_signature.operator_phrases — used by MatchScore for short-form label matching."
+        },
+        "provenance": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Conversation IDs of resolved sessions that matched this failure mode. Written by distill/promote.py on ENRICH. Never written by the engine."
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of resolved sessions that have reinforced this failure mode via ENRICH. Distinct from case_count (which counts all presentations including unresolved). 0 or absent at cold start."
         }
       },
       "required": ["id", "component_ref", "title", "guardrail", "case_count", "symptom_signature", "causes"],

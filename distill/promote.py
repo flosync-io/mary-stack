@@ -96,8 +96,6 @@ def build_change(fp, rt, fm_index, knowledge):
     if conv not in after.get("provenance", []):
         after.setdefault("provenance", []).append(conv)
     after["evidence_count"] = after.get("evidence_count", 0) + 1
-    note = f"[{conv}] {rt.get('resolution_note', '')}"
-    after.setdefault("field_notes", []).append(note)
     if op == "revise":
         # REVISE: surface the contradiction; Denver decides the final wording
         after["resolution"] = rt.get("resolution_note", before.get("resolution", ""))
