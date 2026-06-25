@@ -1,0 +1,9 @@
+{
+  "_meta": { "machine_id": "DMC80FD-01", "conversation_id": "8f2a", "operator_id": "op-test", "status": "resolved", "resolved_at": "2026-06-25T09:10:00Z" },
+  "engine_evidence": {
+    "chosen": "fm_coolant_low", "sep": 0.62, "status": "resolved",
+    "symptom": "coolant pressure low at the nozzle after a filter change",
+    "ruled_out": ["pump failure"],
+    "resolution": "strainer downstream of the filter was clogged; cleaning the strainer restored pressure"
+  }
+}

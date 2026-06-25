@@ -1,0 +1,9 @@
+{
+  "_meta": { "machine_id": "DMC80FD-01", "conversation_id": "c41d", "operator_id": "op-eval", "status": "resolved", "resolved_at": "2026-06-25T10:30:00Z" },
+  "engine_evidence": {
+    "chosen": null, "sep": 0.0, "status": "resolved",
+    "symptom": "spindle getting hot after about 40 minutes of running",
+    "ruled_out": [],
+    "resolution": "coolant strainer feeding the spindle was partially blocked; cleaned it and the temperature came back to normal"
+  }
+}

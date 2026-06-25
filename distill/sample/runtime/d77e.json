@@ -1,0 +1,9 @@
+{
+  "_meta": { "machine_id": "DMC80FD-01", "conversation_id": "d77e", "operator_id": "op-eval", "status": "resolved", "resolved_at": "2026-06-25T11:45:00Z" },
+  "engine_evidence": {
+    "chosen": "fm_axis_drift", "sep": 0.55, "status": "escalated",
+    "symptom": "X axis drifting again shortly after a re-home",
+    "ruled_out": [],
+    "resolution": "re-home did NOT hold; drift recurred within the shift; root cause was spindle bearing wear, escalated to maintenance"
+  }
+}

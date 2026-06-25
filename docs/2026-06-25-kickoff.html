@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machine Mary — backend & promotion kickoff</title>
+<style>
+  :root{
+    --bg:#14110f; --panel:#1d1916; --panel2:#241f1b; --ink:#f4efe9; --mut:#b3a99e; --faint:#8a8077;
+    --accent:#e8623d; --accent2:#d9a441; --line:#322b25;
+    --green:#5fae7a; --greenbg:#16241c; --greenln:#27452f;
+    --amber:#d9a441; --amberbg:#2a2413; --amberln:#4a3d1c;
+    --red:#e0685c; --redbg:#2a1715; --redln:#4d2722;
+    --blue:#6fa8d6;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;font-size:15px}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 90px}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:8px}
+  .brand{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:27px;margin:8px 0 4px;font-weight:700;letter-spacing:-.01em}
+  .sub{color:var(--mut);font-size:14px}
+  .meta{color:var(--faint);font-size:12.5px;margin-top:8px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:0;background:var(--bg);padding:14px 0 12px;z-index:10;border-bottom:1px solid var(--line);margin-bottom:22px}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--mut);padding:8px 13px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;white-space:nowrap}
+  .tab:hover{color:var(--ink);border-color:#4a4038}
+  .tab.active{background:var(--accent);color:#1a120f;border-color:var(--accent)}
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2{font-size:20px;margin:6px 0 14px;letter-spacing:-.01em}
+  h3{font-size:15.5px;margin:24px 0 8px;color:var(--accent2)}
+  p{margin:9px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin:12px 0}
+  .card.lead{border-color:var(--accent);background:linear-gradient(180deg,#241712,#1d1916)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}.tabs{overflow-x:auto;flex-wrap:nowrap}}
+  .tier{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;vertical-align:middle}
+  .t-green{background:var(--greenbg);color:var(--green);border:1px solid var(--greenln)}
+  .t-amber{background:var(--amberbg);color:var(--amber);border:1px solid var(--amberln)}
+  .t-red{background:var(--redbg);color:var(--red);border:1px solid var(--redln)}
+  ul{margin:8px 0;padding-left:20px}li{margin:6px 0}
+  .lbl{color:var(--faint);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px}
+  .big{font-size:17px;font-weight:600;color:var(--ink)}
+  .accent{color:var(--accent)}.gold{color:var(--accent2)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--faint);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px;margin:2px 4px 2px 0;color:var(--mut)}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:var(--accent2);font-family:var(--mono)}
+  pre{background:#100d0b;border:1px solid var(--line);border-radius:9px;padding:13px 15px;font-family:var(--mono);font-size:12px;color:var(--mut);overflow:auto;line-height:1.55}
+  .note{font-size:12.5px;color:var(--faint);margin-top:6px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  /* flow */
+  .flow{counter-reset:step;margin:10px 0}
+  .flow .step{position:relative;padding:9px 0 9px 40px;border-left:1px solid var(--line);margin-left:13px}
+  .flow .step:before{counter-increment:step;content:counter(step);position:absolute;left:-13px;top:8px;width:26px;height:26px;border-radius:50%;background:var(--panel2);border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  /* arch row chips */
+  .archrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;margin:6px 0}
+  .box{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:5px 9px;color:var(--ink)}
+  .box.k{border-color:var(--greenln);color:var(--green)} .box.r{border-color:var(--amberln);color:var(--amber)} .box.x{border-color:var(--redln);color:var(--red);text-decoration:line-through;opacity:.7}
+  .arr{color:var(--faint)}
+  /* tasks */
+  .ms{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin:14px 0}
+  .ms .mshead{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .ms .mstitle{font-size:16px;font-weight:700}
+  .ms .mscode{font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:5px;padding:1px 7px}
+  .prog{flex:1;height:7px;background:var(--panel2);border:1px solid var(--line);border-radius:20px;overflow:hidden;min-width:90px}
+  .prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+  .pct{font-family:var(--mono);font-size:11px;color:var(--faint);min-width:54px;text-align:right}
+  .task{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line)}
+  .task:first-of-type{border-top:0}
+  .task input{width:17px;height:17px;margin-top:2px;accent-color:var(--accent);flex:none}
+  .task .txt{font-size:13.5px}
+  .task .txt em{display:block;color:var(--faint);font-style:normal;font-size:12px;font-family:var(--mono);margin-top:2px}
+  .task.done .txt{color:var(--faint);text-decoration:line-through}
+  .task.done .txt em{text-decoration:none}
+  .crit{font-family:var(--mono);font-size:12px;color:var(--accent2);background:var(--amberbg);border:1px solid var(--amberln);border-radius:8px;padding:9px 12px;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="brand">Flosync · Machine Mary · backend + promotion</div>
+    <h1>Kickoff — runtime → knowledge promotion (B-zero)</h1>
+    <div class="sub">Review the current vs target architecture, the change delta, and the milestone task list — then start execution.</div>
+    <div class="meta">2026-06-25 · machine DMC80FD-01 · Supabase <code>kaxwnmsoxdrvgnlelafl</code> · bucket <code>mary-memory</code> · backed by ADR-0001</div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--green)"></i> Built / decided</span>
+      <span><i class="dot" style="background:var(--amber)"></i> Today · to build / verify</span>
+      <span><i class="dot" style="background:var(--red)"></i> Deferred · open decision</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <div class="tab active" data-t="summary">① Kickoff</div>
+    <div class="tab" data-t="current">② Current architecture</div>
+    <div class="tab" data-t="target">③ Target architecture</div>
+    <div class="tab" data-t="changes">④ The changes</div>
+    <div class="tab" data-t="tasks">⑤ Tasks &amp; milestones</div>
+    <div class="tab" data-t="appendix">⑥ Decisions &amp; deferred</div>
+  </nav>
+
+  <!-- ① KICKOFF -->
+  <section class="panel active" id="summary">
+    <h2>The headline</h2>
+    <div class="card lead">
+      <div class="lbl">What ships today</div>
+      <p class="big">One manual pass of the promotion loop, end-to-end: talk to V5 → <code>runtime.json</code> → <code>promote.py</code> → <code>review.html</code> → Denver approves → versioned <code>knowledge.json</code>.</p>
+      <p>Architecture is unchanged — the heavy machinery (cache, recurrence, auto-gate, LLM distillation, proxy message-capture) is deliberately deferred. The B-zero is <span class="accent">human gate + git + the skill you already have</span>.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">Already built <span class="tier t-green">runs now</span></div>
+        <p><code>promote.py</code> + generated <code>review.html</code> — deterministic (reads the engine's typed state, no LLM). Demo runs on 3 sample resolved conversations producing an ENRICH, an ADD, and a flagged REVISE.</p>
+      </div>
+      <div class="card">
+        <div class="lbl">The model in one line <span class="tier t-green">decided</span></div>
+        <div class="archrow">
+          <span class="box r">runtime.json</span><span class="arr">→</span>
+          <span class="box x">cache.json</span><span class="arr">→</span>
+          <span class="box k">knowledge.json</span>
+        </div>
+        <p class="note">raw per-conversation → (staging, deferred) → curated truth. <code>vault</code> slimmed to a thin index; <code>machine_memory</code> dropped.</p>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">Milestones</div>
+        <ul>
+          <li><b>M0</b> Repo stood up, tests green</li>
+          <li><b>M1</b> Backend reconciled (vault index · runtime verified · IDs+errors)</li>
+          <li><b>M2</b> Knowledge versioning + rollback working</li>
+          <li><b>M3</b> Promotion loop end-to-end <span class="tier t-amber">keystone</span></li>
+          <li><b>M4</b> One eval case run + finding recorded</li>
+          <li><b>M5</b> Stretch — 5.1 → 5.2 breaking changes</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="lbl">Confirm before you start <span class="tier t-red">decisions</span></div>
+        <ul>
+          <li>Does N15 write the <b>turns</b> into <code>runtime.json</code>, or only engine state? (pull one real file)</li>
+          <li>Who fires <b>resolve</b> — Dify confirmed-path flag, or the proxy on status flip?</li>
+          <li><code>runtime.json</code> writer today: rely on N15, or move capture to the proxy (v1 stretch)?</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② CURRENT -->
+  <section class="panel" id="current">
+    <h2>Current architecture (v5.1, as-is)</h2>
+    <div class="card">
+      <div class="lbl">Runtime pipeline — one pass per operator message</div>
+      <pre>Start → N0 Read knowledge (HTTP) → N0b Pick → N1 Interpret (LLM) → N2 GuardPre
+      → N6 MatchScore (LLM) → N8 Engine → N12 Render (LLM) → N14 Envelope
+      → Answer → N13 Persist → N15 Write runtime (HTTP)</pre>
+      <p class="note">Deterministic Interpret·Match·Diagnose. LLM only interprets (in) and renders (out); code decides every move. Constants: <code>DECLINE_FLOOR 0.45</code>, <code>TIE_BAND 0.10</code>. 16/16 engine tests pass.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">Storage today — two living JSONs</div>
+        <p><code>knowledge/&lt;machine&gt;.json</code> — read at N0 (curated fault library).<br>
+        <code>runtime/&lt;machine&gt;/&lt;conv&gt;.json</code> — written every turn at N15.</p>
+        <p class="note">Bucket <code>mary-memory</code>. This is the v5.1 memory model.</p>
+      </div>
+      <div class="card">
+        <div class="lbl">…and legacy tables, now truncated <span class="tier t-amber">mid-migration</span></div>
+        <p><code>vault</code> (raw per session) and <code>machine_memory</code> (curated) were archived (<code>*_archive_20260625</code>) → truncated to 0. <code>source_app</code> column added (NULL = legacy). <code>operator_memory</code> remains.</p>
+      </div>
+    </div>
+    <h3>Why it needs reworking</h3>
+    <div class="grid2">
+      <div class="card"><div class="lbl">Split-brain <span class="tier t-amber">fix target</span></div><p>Thread list reads Supabase (<code>get_threads</code>), but message history live-reads Dify (<code>dify-proxy/messages</code>). Two sources.</p></div>
+      <div class="card"><div class="lbl">Durability hole <span class="tier t-red">data loss seen</span></div><p>Deleting old Dify apps permanently lost their transcripts; only structured summaries survived.</p></div>
+      <div class="card"><div class="lbl">Two persistence models <span class="tier t-amber">drift</span></div><p>May three-table and June two-JSON designs coexist in everyone's head.</p></div>
+      <div class="card"><div class="lbl">Capture depended on resolution <span class="tier t-amber">null fields</span></div><p><code>vault</code> diagnostic fields sat NULL because they only wrote if the loop completed; <code>machine_memory</code> had duplicate writes.</p></div>
+    </div>
+    <div class="card">
+      <div class="lbl">dify-proxy (working as designed)</div>
+      <p>Allowlisted pass-through for 3 routes (<code>chat-messages</code>, <code>messages</code>, <code>files/upload</code>), <code>verify_jwt</code> + <code>requireUser</code>, blocking mode, <code>DIFY_API_KEY</code> server-side. App <code>1d5aed45-…</code>. The 401s were auth, not a bug.</p>
+    </div>
+  </section>
+
+  <!-- ③ TARGET -->
+  <section class="panel" id="target">
+    <h2>Target architecture</h2>
+    <div class="card">
+      <div class="lbl">Repo — one monorepo, three blocks around one contract</div>
+      <pre>mary-stack/
+├── contracts/   schema.json + manifest/finding shapes
+├── knowledge/   &lt;machine&gt;.json            ← curated truth (the spine)
+├── build/       mary.yml, prompts          ← Block 1
+├── distill/     promote.py, review loop    ← Block 2
+├── eval/        alex + scripted suite       ← Block 3
+├── backend/     supabase functions + migrations
+└── docs/        ADR-0001, contract, tasklist</pre>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">Persistence — three-tier granularity</div>
+        <div class="archrow"><span class="box r">runtime.json</span><span class="arr">raw, every turn</span></div>
+        <div class="archrow"><span class="box x">cache.json</span><span class="arr">staged candidates · deferred</span></div>
+        <div class="archrow"><span class="box k">knowledge.json</span><span class="arr">curated · versioned</span></div>
+        <p class="note">Granularity drops as you go up. B-zero skips cache: resolved runtime distills straight to a review.</p>
+      </div>
+      <div class="card">
+        <div class="lbl">Tables resolved</div>
+        <ul>
+          <li><b>machine_memory</b> → <span class="tier t-green">dropped</span> (curated lives in knowledge.json)</li>
+          <li><b>vault</b> → <span class="tier t-amber">thin index</span> (1 row/conv, powers get_threads)</li>
+          <li><b>runtime.json</b> → the raw record + history source</li>
+          <li><b>operator_memory</b> → <span class="tier t-red">orphan, kept</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">The promotion loop (B-zero)</div>
+      <div class="flow">
+        <div class="step"><strong>Resolve</strong> a conversation → flips <code>status=resolved</code> (runtime.json is already full).</div>
+        <div class="step"><strong>promote.py</strong> reads resolved runtime → routes by engine state: <code>sep≥0.45 &amp; chosen</code> → ENRICH (→REVISE if contradicts); <code>chosen=null</code> → ADD.</div>
+        <div class="step"><strong>review.html</strong> generated — changelog + before→after + inline edit.</div>
+        <div class="step"><strong>Denver</strong> reviews (skims adds/enriches, scrutinizes ⚠ revises), edits, approves.</div>
+        <div class="step"><strong>knowledge.json</strong> downloaded with <code>_meta</code> version bump + parent_version; commit to version, <code>git revert</code> to roll back.</div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="lbl">Versioning &amp; rollback</div><p>Never overwrite in place. <code>_meta.version</code> + <code>parent_version</code> chain; commit = version, <code>git revert</code> = rollback. Substrate survives: re-run <code>promote.py</code> to rebuild from runtime.json.</p></div>
+      <div class="card"><div class="lbl">Multi-machine</div><p><code>machine_id</code> is the partition key everywhere. Engine/schema/prompts/floors shared; knowledge/runtime/registry per machine. Onboard N = registry row + <code>knowledge/&lt;N&gt;.json</code>, no code change.</p></div>
+    </div>
+  </section>
+
+  <!-- ④ CHANGES -->
+  <section class="panel" id="changes">
+    <h2>The change delta — current → new</h2>
+    <table>
+      <tr><th>Area</th><th>Current</th><th>New</th><th>Status</th></tr>
+      <tr><td>Repo</td><td>loose files, mary-eval is its own root</td><td>mary-stack monorepo; eval moves in as a block</td><td><span class="tier t-amber">today</span></td></tr>
+      <tr><td>machine_memory</td><td>curated table (41 rows, dup writes)</td><td>dropped — curated lives in knowledge.json</td><td><span class="tier t-green">done (truncated)</span></td></tr>
+      <tr><td>vault</td><td>fat raw record (fields NULL)</td><td>thin per-conversation index for get_threads</td><td><span class="tier t-amber">today</span></td></tr>
+      <tr><td>runtime.json</td><td>written every turn (N15)</td><td>same — confirmed as the raw record + history source</td><td><span class="tier t-amber">verify</span></td></tr>
+      <tr><td>IDs &amp; errors</td><td>raw machine/operator ids; silent-empty</td><td>registry resolves slug→key; 404/401/422/502 envelope</td><td><span class="tier t-amber">today</span></td></tr>
+      <tr><td>knowledge versioning</td><td>overwrite in place</td><td>_meta version chain; git = versions; revert = rollback</td><td><span class="tier t-amber">today</span></td></tr>
+      <tr><td>Promotion</td><td>none (writeback never completed)</td><td>promote.py → review.html → approve</td><td><span class="tier t-green">built</span></td></tr>
+      <tr><td>Human review</td><td>none</td><td>review.html — changelog, before/after, edit, approve</td><td><span class="tier t-green">built</span></td></tr>
+      <tr><td>Messages to Supabase</td><td>history live-read from Dify</td><td>proxy writes turns + fetch from Supabase (split-brain fix)</td><td><span class="tier t-red">v1 stretch</span></td></tr>
+      <tr><td>cache + auto-gate</td><td>—</td><td>cache.json + recurrence/fingerprint + async job</td><td><span class="tier t-red">deferred</span></td></tr>
+      <tr><td>Distillation quality</td><td>—</td><td>deterministic field-map now; LLM distill later</td><td><span class="tier t-red">v1</span></td></tr>
+      <tr><td>operator_memory</td><td>table</td><td>keep, or → operator/&lt;op&gt;.json</td><td><span class="tier t-red">decide later</span></td></tr>
+    </table>
+    <p class="note">Green = already true. Amber = today's work. Red = consciously deferred (architecture unchanged, just unbuilt).</p>
+  </section>
+
+  <!-- ⑤ TASKS -->
+  <section class="panel" id="tasks">
+    <h2>Granular tasks &amp; milestones</h2>
+    <div class="crit">Critical path: M0 → M1 → M2 → M3 → M4 → (M5). Coordination: anything touching <code>dify-proxy</code> is the live deploy (Saksham) — branch, don't hot-edit. Ship rule: park &amp; promote manually today; the async job stays deferred.</div>
+
+    <div class="ms" data-ms="m0">
+      <div class="mshead"><span class="mscode">M0</span><span class="mstitle">Repo stood up</span><span class="prog" data-for="m0"><i></i></span><span class="pct" data-for="m0"></span></div>
+      <label class="task"><input type="checkbox" data-m="m0"><span class="txt">Pre-flight: <code>select count(*)</code> on vault &amp; machine_memory (confirm 0; reltuples lies); confirm archives exist.<em>verify: both 0, archives present</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m0"><span class="txt"><code>git init</code> mary-stack; move <code>backend/supabase/{functions,migrations}</code> in; drop real <code>schema.json</code> + seed knowledge.<em>verify: tree matches; files committed</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m0"><span class="txt">Commit ADR-0001, tasklist, promote.py, review loop under the repo.<em>verify: <code>python3 tests/test_engine.py</code> → 16/16</em></span></label>
+    </div>
+
+    <div class="ms" data-ms="m1">
+      <div class="mshead"><span class="mscode">M1</span><span class="mstitle">Backend reconciled</span><span class="prog" data-for="m1"><i></i></span><span class="pct" data-for="m1"></span></div>
+      <label class="task"><input type="checkbox" data-m="m1"><span class="txt">Migration: <code>machine_registry (slug pk, machine_id, control_type, dify_app_key, knowledge_path, onboarded)</code>; seed DMC80FD-01.<em>verify: row resolves slug→key</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m1"><span class="txt">Proxy resolves machine/operator id against registry before forwarding; error envelope (404 machine, 404/422 operator, 401 auth, 502 upstream).<em>verify: bogus slug → 404, not empty 200</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m1"><span class="txt">Slim <code>vault</code> to index columns; confirm <code>threads</code> view + <code>get_threads</code> still resolve.<em>verify: <code>get_threads('op-test')</code> well-formed</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m1"><span class="txt"><b>Confirm runtime.json shape</b>: pull one real <code>runtime/DMC80FD-01/&lt;conv&gt;.json</code> — does it hold turns + engine state?<em>verify: open it; note whether turns present</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m1"><span class="txt">Confirm N15 writes every turn; if not, add turn-capture in proxy keyed by conversation_id; upsert vault index row per turn.<em>verify: 3-turn convo → file has 3 turns + index row</em></span></label>
+    </div>
+
+    <div class="ms" data-ms="m2">
+      <div class="mshead"><span class="mscode">M2</span><span class="mstitle">Knowledge versioning + rollback</span><span class="prog" data-for="m2"><i></i></span><span class="pct" data-for="m2"></span></div>
+      <label class="task"><input type="checkbox" data-m="m2"><span class="txt">Stop in-place writes; builds carry <code>_meta {version, parent_version, sha256}</code>.<em>verify: two builds chain by parent_version</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m2"><span class="txt">knowledge.json committed to git as the version store; document <code>git revert</code> rollback.<em>verify: revert restores prior build cleanly</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m2"><span class="txt">(when capture lands) publish approved build to Storage as the copy Mary's N0 reads.<em>verify: N0 reads the published version</em></span></label>
+    </div>
+
+    <div class="ms" data-ms="m3">
+      <div class="mshead"><span class="mscode">M3</span><span class="mstitle">Promotion loop end-to-end</span><span class="prog" data-for="m3"><i></i></span><span class="pct" data-for="m3"></span></div>
+      <label class="task"><input type="checkbox" data-m="m3"><span class="txt"><code>promote.py</code> + <code>review.html</code> exist and run on sample data (ENRICH/ADD/REVISE).<em>verify: already done — open out/review.html</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m3"><span class="txt">Adapt <code>promote.py</code> extractor to the real runtime.json shape (read final-turn engine state if nested).<em>verify: runs on a real resolved file</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m3"><span class="txt">Point <code>--runtime</code> at resolved files (local dir today; Supabase bucket later); <code>--knowledge</code> at the current build.<em>verify: candidate + review.html generated from real data</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m3"><span class="txt">Denver runs one real review: edits, approves → downloads versioned knowledge.json + decision log; commit.<em>verify: new build committed, version bumped</em></span></label>
+    </div>
+
+    <div class="ms" data-ms="m4">
+      <div class="mshead"><span class="mscode">M4</span><span class="mstitle">One eval + finding</span><span class="prog" data-for="m4"><i></i></span><span class="pct" data-for="m4"></span></div>
+      <label class="task"><input type="checkbox" data-m="m4"><span class="txt">Run one <code>mary-eval</code> case live vs deployed V5 — pick a memory/knowledge case (proves wiring shows up).<em>verify: runs end-to-end</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m4"><span class="txt">If it fails, emit a <code>finding</code> into <code>eval/findings/</code> with fault_class + run manifest (mary_yml × knowledge_version × app).<em>verify: finding recorded against the pinned tuple</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m4"><span class="txt">Say "update memory" → promote today's decisions into block CLAUDE.md / progress.md.<em>verify: progress.md current</em></span></label>
+    </div>
+
+    <div class="ms" data-ms="m5">
+      <div class="mshead"><span class="mscode">M5</span><span class="mstitle">Stretch — 5.1 → 5.2</span><span class="prog" data-for="m5"><i></i></span><span class="pct" data-for="m5"></span></div>
+      <label class="task"><input type="checkbox" data-m="m5"><span class="txt">P0 <code>no_answer</code> — add "not sure" to checks + Interpret schema.<em>verify: "dunno" must NOT clear a cause</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m5"><span class="txt">A7 wrong-machine redirect; A6 QA-flag; clarify plausibility-floor.<em>verify: replay cited evals</em></span></label>
+      <label class="task"><input type="checkbox" data-m="m5"><span class="txt">Bump label to v5.2, re-pin manifest, update dashboard. <b>Breaking</b>: re-pin open findings.<em>verify: tests green, version cut over</em></span></label>
+    </div>
+  </section>
+
+  <!-- ⑥ APPENDIX -->
+  <section class="panel" id="appendix">
+    <h2>Decisions &amp; deferred</h2>
+    <div class="card lead">
+      <div class="lbl">ADR-0001 — knowledge persistence (Proposed)</div>
+      <ul>
+        <li><code>machine_memory</code> dropped; curated knowledge lives only in <code>knowledge/&lt;machine&gt;.json</code>.</li>
+        <li><code>vault</code> → thin per-conversation index; body in <code>runtime.json</code>.</li>
+        <li>Tiers: runtime (raw) → cache (staged, deferred) → knowledge (curated).</li>
+        <li>Promotion routes on the engine's existing match; one writer to knowledge.json; distillation generalizes, never appends.</li>
+        <li>Rollback: <code>superseded_by</code> → versioned builds + pointer → delta log → re-distill. B-zero = git.</li>
+      </ul>
+    </div>
+    <h3>Confirm before starting <span class="tier t-red">open</span></h3>
+    <ul>
+      <li>runtime.json contents — turns + state, or state only?</li>
+      <li>Resolve trigger — Dify flag vs proxy status-flip?</li>
+      <li>runtime writer today — N15 vs proxy capture?</li>
+    </ul>
+    <h3>Deferred backlog <span class="tier t-red">not today</span></h3>
+    <ul>
+      <li>Proxy writes turns to Supabase + fetch from Supabase (v1 stretch — fixes split-brain &amp; durability).</li>
+      <li><code>cache.json</code> + recurrence/fingerprint counting + auto-gate + async promotion job (v5.2 #8).</li>
+      <li>LLM-assisted distillation (richer than deterministic field-map).</li>
+      <li>Full versioned-builds + <code>current</code> pointer + delta-log; <code>operator_memory</code> table-vs-JSON; analytics/SQL layer; messages table.</li>
+    </ul>
+    <h3>Artifacts produced</h3>
+    <ul>
+      <li><code>docs/adr/ADR-0001-knowledge-persistence.md</code> · <code>docs/2026-06-25-tasklist.md</code></li>
+      <li><code>distill/promote.py</code> · <code>distill/out/review.html</code> · <code>distill/README-promotion.md</code> · sample runtime + knowledge</li>
+      <li><code>docs/BLOCK-CONTRACT.md</code> + the mary-stack skeleton (.claude hooks + update-memory skill, per-block CLAUDE/progress/notes)</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  const tabs=document.querySelectorAll('.tab'),panels=document.querySelectorAll('.panel');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));panels.forEach(p=>p.classList.remove('active'));
+    t.classList.add('active');const tg=document.getElementById(t.dataset.t);if(tg)tg.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+  // task progress (in-memory; refresh resets — use the .md tasklist for persistent tracking)
+  function refresh(ms){
+    const boxes=[...document.querySelectorAll('input[data-m="'+ms+'"]')];
+    const done=boxes.filter(b=>b.checked).length;
+    const pct=boxes.length?Math.round(done/boxes.length*100):0;
+    document.querySelector('.prog[data-for="'+ms+'"] i').style.width=pct+'%';
+    document.querySelector('.pct[data-for="'+ms+'"]').textContent=done+'/'+boxes.length+' · '+pct+'%';
+  }
+  document.querySelectorAll('input[data-m]').forEach(b=>b.addEventListener('change',()=>{
+    b.closest('.task').classList.toggle('done',b.checked);refresh(b.dataset.m);
+  }));
+  ['m0','m1','m2','m3','m4','m5'].forEach(refresh);
+</script>
+</body>
+</html>

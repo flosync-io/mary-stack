@@ -1,0 +1,30 @@
+{
+  "_meta": { "machine_id": "DMC80FD-01", "version": "2026-06-24.a", "parent_version": null, "schema": "1.x" },
+  "failure_modes": [
+    {
+      "id": "fm_coolant_concentration_low",
+      "name": "Coolant concentration low",
+      "symptoms": ["overheating during cut", "poor finish", "off-smell coolant"],
+      "checks": ["chk_coolant_condition"],
+      "procedure": "proc_check_correct_coolant_concentration",
+      "resolution": "Check coolant condition and concentration; correct premix to spec.",
+      "escalate": false,
+      "provenance": ["c0001"],
+      "evidence_count": 2
+    },
+    {
+      "id": "fm_axis_drift",
+      "name": "Axis position drift",
+      "symptoms": ["part out of tolerance on X"],
+      "checks": ["chk_rehome"],
+      "resolution": "Re-home the axis and continue.",
+      "escalate": false,
+      "provenance": ["c0002"],
+      "evidence_count": 2
+    }
+  ],
+  "checks": [
+    { "id": "chk_coolant_condition", "text": "Look/smell the coolant; check for tramp oil, scum, rust films." },
+    { "id": "chk_rehome", "text": "Re-reference (home) the affected axis." }
+  ]
+}

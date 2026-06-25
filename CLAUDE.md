@@ -3,8 +3,17 @@
 Three blocks around one contract. Nothing integrates them; `schema.json` does.
 
 - **build/** — Mary herself: `mary.yml` → Dify. Consumes `knowledge.json`.
-- **distill/** — messy sources → schema-conformant `knowledge.json`.
+- **distill/** — messy sources + resolved sessions → schema-conformant `knowledge.json`.
 - **eval/** — Alex + scripted suite. Tests the deployed Mary against the same knowledge.
+- **backend/** — Supabase edge functions + migrations (the runtime/vault/registry plumbing).
+
+## Persistence (ADR-0001 — read `docs/adr/` before backend or distill work)
+
+- Storage: `mary-memory` bucket. `knowledge/<machine>.json` (curated, read at N0) + `runtime/<machine>/<conv>.json` (engine STATE, written every turn — not a transcript).
+- `machine_memory` table = **dropped**; curated → `knowledge.json`; the `(day,issue,resolution)` logbook = a **derived view** over vault-index ⋈ runtime.
+- `vault` = thin per-conversation index. Every record MUST carry `conversation_id, operator_id, source_app, created_at` (proxy stamps them).
+- `knowledge.json`: one writer, `_meta` version chain, git = versions + `git revert` = rollback, published to Storage for Mary.
+- Today's plan: `docs/2026-06-25-todays-plan.html`; build order: `distill/BUILD-PLAN.md`.
 
 ## Shared contract (true for every block)
 

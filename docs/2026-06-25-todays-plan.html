@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machine Mary — today's plan</title>
+<style>
+  :root{
+    --bg:#14110f; --panel:#1d1916; --panel2:#241f1b; --ink:#f4efe9; --mut:#b3a99e; --faint:#8a8077;
+    --accent:#e8623d; --accent2:#d9a441; --line:#322b25;
+    --green:#5fae7a; --greenbg:#16241c; --greenln:#27452f;
+    --amber:#d9a441; --amberbg:#2a2413; --amberln:#4a3d1c;
+    --red:#e0685c; --redbg:#2a1715; --redln:#4d2722;
+    --blue:#6fa8d6; --bluebg:#141d24; --blueln:#2a3d50;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;font-size:15px}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 22px 90px}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:18px}
+  .brand{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:28px;margin:8px 0 4px;font-weight:800;letter-spacing:-.015em}
+  .sub{color:var(--mut);font-size:14.5px;max-width:70ch}
+  .meta{color:var(--faint);font-size:12.5px;margin-top:9px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:0;background:var(--bg);padding:14px 0 12px;z-index:10;border-bottom:1px solid var(--line);margin-bottom:22px}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--mut);padding:8px 13px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;white-space:nowrap}
+  .tab:hover{color:var(--ink);border-color:#4a4038}
+  .tab.active{background:var(--accent);color:#1a120f;border-color:var(--accent)}
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2{font-size:20px;margin:4px 0 14px;letter-spacing:-.01em}
+  h3{font-size:15px;margin:22px 0 8px;color:var(--accent2)}
+  p{margin:9px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin:12px 0}
+  .card.lead{border-color:var(--accent);background:linear-gradient(180deg,#241712,#1d1916)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}.tabs{overflow-x:auto;flex-wrap:nowrap}}
+  .tier{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;vertical-align:middle}
+  .t-green{background:var(--greenbg);color:var(--green);border:1px solid var(--greenln)}
+  .t-amber{background:var(--amberbg);color:var(--amber);border:1px solid var(--amberln)}
+  .t-red{background:var(--redbg);color:var(--red);border:1px solid var(--redln)}
+  .t-blue{background:var(--bluebg);color:var(--blue);border:1px solid var(--blueln)}
+  ul{margin:8px 0;padding-left:20px}li{margin:6px 0}
+  .lbl{color:var(--faint);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px}
+  .big{font-size:17px;font-weight:600;color:var(--ink)}
+  .accent{color:var(--accent)}.gold{color:var(--accent2)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--faint);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:var(--accent2);font-family:var(--mono)}
+  pre{background:#100d0b;border:1px solid var(--line);border-radius:9px;padding:13px 15px;font-family:var(--mono);font-size:12px;color:var(--mut);overflow:auto;line-height:1.55}
+  .note{font-size:12.5px;color:var(--faint);margin-top:6px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  /* steps */
+  .steps{counter-reset:s;margin:6px 0}
+  .stepc{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px 13px 52px;margin:10px 0}
+  .stepc:before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:13px;width:26px;height:26px;border-radius:50%;background:var(--panel2);border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+  .stepc .st{font-weight:700;font-size:15px}
+  .stepc .dw{font-family:var(--mono);font-size:11.5px;color:var(--green);margin-top:5px}
+  .stepc .dw:before{content:"done when → ";color:var(--faint)}
+  /* flow chips */
+  .chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;margin:8px 0}
+  .box{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:5px 9px;color:var(--ink)}
+  .box.k{border-color:var(--greenln);color:var(--green)}.box.r{border-color:var(--amberln);color:var(--amber)}.box.x{border-color:var(--redln);color:var(--red);opacity:.7}
+  .arr{color:var(--faint)}
+  .brief{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin:12px 0}
+  .brief .fn{font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:700}
+  .brief .role{font-size:12.5px;color:var(--mut);margin:3px 0 9px}
+  .brief dl{margin:0;display:grid;grid-template-columns:84px 1fr;gap:5px 10px;font-size:13px}
+  .brief dt{color:var(--faint);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+  .brief dd{margin:0}
+  .first{background:linear-gradient(180deg,#1c2418,#1d1916);border:1px solid var(--greenln);border-radius:11px;padding:14px 16px;margin:14px 0}
+  .first .lbl{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="brand">Flosync · Machine Mary · 2026-06-25</div>
+    <h1>Today's plan — backend reconcile + the promotion loop</h1>
+    <div class="sub">Architect's plan; Claude Code builds it. Ship one manual pass of <span class="accent">resolve → distill → review → approve → versioned knowledge.json</span>, and reconcile the backend underneath it.</div>
+    <div class="meta">Supabase <code>kaxwnmsoxdrvgnlelafl</code> · bucket <code>mary-memory</code> · machine DMC80FD-01 · backed by ADR-0001</div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--green)"></i> Built / decided</span>
+      <span><i class="dot" style="background:var(--amber)"></i> Build today</span>
+      <span><i class="dot" style="background:var(--red)"></i> Deferred / confirm</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <div class="tab active" data-t="today">① Today</div>
+    <div class="tab" data-t="sequence">② Build sequence</div>
+    <div class="tab" data-t="loop">③ The promotion loop</div>
+    <div class="tab" data-t="backend">④ Backend reconcile</div>
+    <div class="tab" data-t="briefs">⑤ Claude Code briefs</div>
+    <div class="tab" data-t="decisions">⑥ Decisions &amp; deferred</div>
+  </nav>
+
+  <!-- ① TODAY -->
+  <section class="panel active" id="today">
+    <h2>The headline</h2>
+    <div class="card lead">
+      <div class="lbl">What ships today</div>
+      <p class="big">One manual pass of the promotion loop, working on real data, with a human-readable review — plus the backend reconciled so the screens don't break.</p>
+      <p>B-zero: no cache, no recurrence counter, no LLM, no automation. Human gate + git + the pieces already built. The heavy machinery is deliberately deferred.</p>
+    </div>
+    <div class="first">
+      <div class="lbl">Do this first</div>
+      <p><b>Land the repo with memory seeded, then build <code>render.py</code> first.</b> Seed the block <code>CLAUDE.md</code> with the guardrails (so every Claude Code session auto-loads them), then build leaf-first: <code>render.py</code> has a crisp spec (3 known input→output narratives), no dependencies, and everything imports it. Get it right and the rest stands on solid ground.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">Already built <span class="tier t-green">runs now</span></div>
+        <ul>
+          <li><code>promote.py</code> + <code>review.html</code> generator (deterministic)</li>
+          <li><code>view_runtime.py</code> — runtime.json → plain narrative</li>
+          <li>ADR-0001, build plan, mary-stack skeleton + memory/hooks</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="lbl">Milestones</div>
+        <ul>
+          <li><b>M0</b> repo seeded, baseline runs on samples</li>
+          <li><b>M1</b> backend reconciled (get-machine repoint · vault index · IDs/errors)</li>
+          <li><b>M2</b> knowledge versioning + rollback</li>
+          <li><b>M3</b> promotion loop on real data, narrative review <span class="tier t-amber">keystone</span></li>
+          <li><b>M4</b> Denver's first real approve + commit</li>
+          <li><b>M5</b> stretch — 5.1→5.2</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">Confirm before building on it <span class="tier t-red">open</span></div>
+      <p>Does N15 write the <b>turns</b> into runtime.json, or only engine state? (the real files show state only → history is a separate capture) · Who fires <b>resolve</b> — Dify flag or proxy status-flip? · runtime writer today — N15 or proxy?</p>
+    </div>
+  </section>
+
+  <!-- ② BUILD SEQUENCE -->
+  <section class="panel" id="sequence">
+    <h2>Build sequence</h2>
+    <p class="note">Each step is a Claude Code task. Smallest, most-tested first. Don't pull live data until 1–3 are green on the 3 sample files — debugging known inputs is faster.</p>
+    <div class="steps">
+      <div class="stepc"><div class="st">Park &amp; seed <span class="tier t-amber">~15 min</span></div>
+        Drop the built files into <code>distill/</code>; seed root + <code>distill/CLAUDE.md</code> with the guardrails (tab ⑤). Run <code>promote.py</code> + <code>view_runtime.py</code> on samples.
+        <div class="dw">review.html + sessions.html open and look right</div></div>
+      <div class="stepc"><div class="st">render.py <span class="tier t-green">leaf first</span></div>
+        Extract <code>narrate(runtime, knowledge)</code> + <code>name_of(slug)</code> into one shared module. Verbatim operator text + slug→name + humanize-on-miss.
+        <div class="dw">reproduces the 3 sample narratives exactly</div></div>
+      <div class="stepc"><div class="st">promote.py → real shape</div>
+        Re-point the reader off the stub fields onto the real shape (<code>status=green</code>, <code>matched_fm</code>, id=filename, no <code>sep</code>). Route enrich / add / revise.
+        <div class="dw">sample/real-runtime → 1 ENRICH (coolant), 2 skipped (open)</div></div>
+      <div class="stepc"><div class="st">review.html → narrative grounding</div>
+        Replace the field-list grounding with <code>render.narrate()</code> — the reviewer reads the session as a story above each editable change.
+        <div class="dw">each ENRICH/ADD/REVISE card shows the plain narrative</div></div>
+      <div class="stepc"><div class="st">backend reconcile <span class="tier t-amber">parallel track</span></div>
+        Repoint <code>get-machine</code>; extend <code>machines</code>; slim <code>vault</code>; drop <code>machine_memory</code>; error envelope. (tab ④)
+        <div class="dw">get-machine shape unchanged, sourced from new stores; bogus slug → 404</div></div>
+      <div class="stepc"><div class="st">real data → real approve</div>
+        Swap the stub for the real <code>knowledge.json</code>; pull resolved runtime from the bucket; Denver approves → versioned <code>knowledge.json</code> committed.
+        <div class="dw">a real promoted build is committed; git revert = rollback</div></div>
+    </div>
+  </section>
+
+  <!-- ③ THE LOOP -->
+  <section class="panel" id="loop">
+    <h2>The promotion loop</h2>
+    <div class="card">
+      <div class="lbl">Flow</div>
+      <div class="chips">
+        <span class="box r">runtime.json</span><span class="arr">status=green →</span>
+        <span class="box">promote.py</span><span class="arr">→</span>
+        <span class="box">review.html</span><span class="arr">Denver →</span>
+        <span class="box k">knowledge.json</span><span class="arr">+v, git</span>
+      </div>
+      <p class="note">runtime.json is already full (written every turn). Resolve just flips <code>status=green</code> → eligible. promote.py reads the engine's typed state — no LLM.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">Routing — from the engine's own match</div>
+        <ul>
+          <li><code>matched_fm</code> set + agrees → <b>ENRICH</b> (+provenance, +field note)</li>
+          <li>…contradicts / escalated → <b>REVISE</b> ⚠ (flagged, starts unchecked)</li>
+          <li><code>matched_fm</code> null → <b>ADD</b> (new failure mode)</li>
+          <li>non-green → skipped</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="lbl">The review — human-readable <span class="tier t-green">decided</span></div>
+        <p>Each change shows the session as a <b>plain narrative</b> (operator's own words, slugs resolved), the before→after object (editable), and a checkbox. Denver skims adds/enriches, scrutinizes ⚠ revises, edits inline, approves.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">Versioning &amp; rollback</div>
+      <p>Approve → download <code>knowledge.json</code> with <code>_meta</code> version bump + <code>parent_version</code> + <code>approved_by</code>, plus a decision log. <b>Commit = version. <code>git revert</code> = rollback.</b> Substrate survives: re-run promote.py to rebuild from runtime. One writer to knowledge.json.</p>
+    </div>
+    <div class="card">
+      <div class="lbl">Granularity tiers</div>
+      <div class="chips"><span class="box r">runtime.json</span><span class="arr">raw / every turn</span>
+        <span class="box x">cache.json</span><span class="arr">staged · deferred</span>
+        <span class="box k">knowledge.json</span><span class="arr">curated · versioned</span></div>
+      <p class="note">B-zero skips cache: resolved runtime distills straight to a review. Distillation generalizes — it never appends raw cases into the contract.</p>
+    </div>
+  </section>
+
+  <!-- ④ BACKEND -->
+  <section class="panel" id="backend">
+    <h2>Backend reconcile</h2>
+    <div class="card">
+      <div class="lbl">Edge-function map (verified against the live project)</div>
+      <table>
+        <tr><th>Function</th><th>Status</th><th>Action</th></tr>
+        <tr><td><code>machines</code> / <code>get-machine</code></td><td><span class="tier t-green">live</span></td><td>extend <code>machines</code>; <b>repoint get-machine</b></td></tr>
+        <tr><td><code>operators</code></td><td><span class="tier t-green">live</span></td><td>reuse (registry exists); reconcile <code>user_id</code>→<code>operator_id</code></td></tr>
+        <tr><td><code>dify-proxy</code></td><td><span class="tier t-green">live</span></td><td>resolve IDs + error envelope</td></tr>
+        <tr><td><code>openai-transcribe</code></td><td><span class="tier t-green">live</span></td><td>unchanged</td></tr>
+        <tr><td><code>get-onboarded / research / video-knowledge</code></td><td><span class="tier t-red">deprecated</span></td><td>ignore</td></tr>
+      </table>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="lbl">get-machine repoint <span class="tier t-amber">do before dropping tables</span></div>
+        <p>It reads <code>machines</code> + fat <code>vault</code> + <code>machine_memory</code>. Keep its JSON shape; source session detail from <code>runtime.json</code>; <code>memory_captured</code> ← <code>runtime.json.resolution_note</code>; drop the machine_memory join.</p>
+      </div>
+      <div class="card">
+        <div class="lbl">Tables</div>
+        <ul>
+          <li><code>machine_memory</code> → <span class="tier t-green">dropped</span> (curated → knowledge.json)</li>
+          <li><code>vault</code> → <span class="tier t-amber">thin index</span> (powers get_threads)</li>
+          <li><code>machines</code>/<code>operators</code> → registries exist → <b>extend</b></li>
+          <li><code>operator_memory</code> → <span class="tier t-red">orphan, kept</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">Identity + errors</div>
+      <p>Extend <code>machines</code> with <code>dify_app_key, knowledge_path, onboarded</code>. Proxy resolves machine/operator before forwarding. Error envelope: 404 <code>machine_not_onboarded</code> · 404/422 <code>operator_not_found</code> · 401 <code>unauthenticated</code> · 502 <code>upstream_error</code> — no more silent-empty.</p>
+    </div>
+    <div class="card">
+      <div class="lbl">runtime.json — the substrate <span class="tier t-amber">give it a schema</span></div>
+      <p>It's engine <b>state</b>, not the transcript (no turns, no <code>operator_id</code>, no timestamps, <code>id</code> is null). Good for distillation, not for history display. Add <code>contracts/runtime.schema.json</code>: required-now <code>id</code>, <code>operator_id</code>, timestamps; nice-to-have <code>ruled_out</code>, match score, <code>knowledge_version</code>.</p>
+    </div>
+  </section>
+
+  <!-- ⑤ BRIEFS -->
+  <section class="panel" id="briefs">
+    <h2>Claude Code briefs</h2>
+    <p class="note">Per-file contracts to paste as tasks. The architecture's already decided — these keep Claude Code building <em>this</em> design, not a plausible-but-different one. Build top-to-bottom.</p>
+
+    <div class="brief">
+      <div class="fn">distill/render.py <span class="tier t-green">build first</span></div>
+      <div class="role">The single human-render module. Both viewer and review import it — no duplicate slug logic anywhere else.</div>
+      <dl>
+        <dt>exports</dt><dd><code>narrate(runtime, knowledge) -> str</code> · <code>name_of(slug, knowledge) -> str</code></dd>
+        <dt>rule</dt><dd>lean on verbatim operator fields (<code>reported</code>, <code>sanity_notes</code>, check <code>answer</code>, <code>resolution_note</code>); resolve slugs via knowledge.json; humanize on miss (strip prefix, _→space). No LLM.</dd>
+        <dt>done</dt><dd>reproduces the 3 sample narratives (green/open/clarify) exactly.</dd>
+      </dl>
+    </div>
+
+    <div class="brief">
+      <div class="fn">distill/promote.py</div>
+      <div class="role">Resolved runtime → candidate knowledge + review.html. Reads the REAL shape.</div>
+      <dl>
+        <dt>input</dt><dd>resolved runtime dir + current knowledge.json + schema.json</dd>
+        <dt>reader</dt><dd><code>status=="green"</code>; <code>matched_fm</code>/<code>confirmed_cause</code>; conv id = filename; never <code>engine_evidence</code>/<code>sep</code></dd>
+        <dt>route</dt><dd>enrich (matched+agree) · revise (contradict/escalate) · add (matched_fm null) · skip (non-green)</dd>
+        <dt>grounding</dt><dd>use <code>render.narrate()</code> for each change</dd>
+        <dt>done</dt><dd>sample/real-runtime → 1 ENRICH, 2 skipped</dd>
+      </dl>
+    </div>
+
+    <div class="brief">
+      <div class="fn">review.html (generated)</div>
+      <div class="role">Denver's surface. Self-contained, no server.</div>
+      <dl>
+        <dt>shows</dt><dd>per change: narrative story · before→after (editable) · checkbox (revise starts unchecked)</dd>
+        <dt>approve</dt><dd>apply checked+edited → bump <code>_meta</code> (version, parent_version, approved_by) → download knowledge.json + decision log</dd>
+        <dt>done</dt><dd>approve a subset → valid versioned file downloads; git revert rolls back</dd>
+      </dl>
+    </div>
+
+    <div class="brief">
+      <div class="fn">CLAUDE.md seeding <span class="tier t-amber">do at park time</span></div>
+      <div class="role">Auto-loaded guardrails so every Claude Code session starts inside the rules.</div>
+      <dl>
+        <dt>distill/</dt><dd>real runtime shape only · distillation generalizes, never appends · render.py is the only human-render · out/ gitignored · approved knowledge commits to knowledge/</dd>
+        <dt>root</dt><dd>the contract spine · data/logic/prompt rule · one writer to knowledge.json</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑥ DECISIONS -->
+  <section class="panel" id="decisions">
+    <h2>Decisions &amp; deferred</h2>
+    <div class="card lead">
+      <div class="lbl">Locked (ADR-0001)</div>
+      <ul>
+        <li><code>machine_memory</code> dropped; curated knowledge lives only in <code>knowledge.json</code>.</li>
+        <li><code>vault</code> → thin per-conversation index; body in <code>runtime.json</code>.</li>
+        <li>runtime → (cache, deferred) → knowledge tiers; one writer to knowledge.json.</li>
+        <li>Promotion routes on the engine's existing match; distillation generalizes, never appends.</li>
+        <li>Rollback: <code>_meta</code> version chain + git (B-zero); versioned-builds/delta-log deferred.</li>
+        <li>Keep the interface (get-machine JSON, get_threads envelope); repoint internals.</li>
+      </ul>
+    </div>
+    <h3>Confirm before building on it <span class="tier t-red">open</span></h3>
+    <ul>
+      <li>runtime.json — turns + state, or state only? (real files say state only)</li>
+      <li>Resolve trigger — Dify flag vs proxy status-flip?</li>
+      <li>runtime writer today — N15 vs proxy capture?</li>
+    </ul>
+    <h3>Deferred <span class="tier t-red">design unchanged, unbuilt</span></h3>
+    <ul>
+      <li>Proxy writes turns to Supabase + fetch from Supabase (history fix — required, since runtime.json has no transcript).</li>
+      <li><code>cache.json</code> + recurrence/fingerprint + auto-gate + async promotion job.</li>
+      <li>LLM-rendered narrative (Mary's Render seam per session); full versioned-builds + pointer + delta-log.</li>
+      <li><code>operator_memory</code> table-vs-JSON; analytics/SQL layer; messages table.</li>
+    </ul>
+    <h3>Artifacts in hand</h3>
+    <ul>
+      <li><code>docs/adr/ADR-0001</code> · <code>docs/2026-06-25-tasklist.md</code> · <code>docs/2026-06-25-kickoff.html</code></li>
+      <li><code>distill/promote.py · view_runtime.py · BUILD-PLAN.md · README-promotion.md</code> + samples (incl. 3 real sessions)</li>
+      <li>mary-stack skeleton: contracts, per-block CLAUDE/progress/notes, .claude hooks + update-memory skill</li>
+    </ul>
+  </section>
+</div>
+<script>
+  const tabs=document.querySelectorAll('.tab'),panels=document.querySelectorAll('.panel');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));panels.forEach(p=>p.classList.remove('active'));
+    t.classList.add('active');const tg=document.getElementById(t.dataset.t);if(tg)tg.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+</script>
+</body>
+</html>
