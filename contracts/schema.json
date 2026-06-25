@@ -159,7 +159,12 @@
         },
         "symptom_signature": { "$ref": "#/$defs/symptom_signature" },
         "causes": { "type": "array", "items": { "$ref": "#/$defs/cause" }, "minItems": 1 },
-        "anti_pattern": { "type": "string" }
+        "anti_pattern": { "type": "string" },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Short canonical labels for this failure mode (e.g. 'chatter', 'coolant weak'). Complement to symptom_signature.operator_phrases — used by MatchScore for short-form label matching."
+        }
       },
       "required": ["id", "component_ref", "title", "guardrail", "case_count", "symptom_signature", "causes"],
       "patternProperties": { "^\\$": {} },
