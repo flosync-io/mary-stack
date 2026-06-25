@@ -1,9 +1,11 @@
 # build — progress
 
 ## Now
-v5.1 frozen. Repo setup: yml in dify_yml/, engine test in dify_yml/tests/, 16/16 green.
+18/18 engine tests green. Status vocab (resolved/unresolved) and `other` kind shipped.
+Next: export yml to Dify (human step); then v5.2 backlog.
 
 ## Next
+- Export updated yml to Dify (deploy gate: human imports after test pass).
 - v5.2 backlog (P0 no_answer; A6 QA-flag; A7 wrong-machine; clarify floor) — alongside ADR-0002 git-native engine extraction.
 
 ## Watch (drift hazards)

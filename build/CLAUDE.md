@@ -4,11 +4,13 @@ Read `HANDOFF-COMPLETE.md` before touching `mary.yml` — it's the v5.1 architec
 
 ## Durable rules
 - **`dify_yml/machine-mary-imd-chatflow.yml` is the SOURCE OF TRUTH.** Engine (guard/engine/envelope code) and prompts (Interpret/Render) live INSIDE it today. Author here, export back — **never hand-edit a node in the Dify UI without re-exporting to this file**, or the repo and production drift.
-- **The gate:** `python3 dify_yml/tests/test_engine.py` after every yml change. It extracts the guard/engine/envelope code from the yml and runs it (so it tests the real deployed logic). 16/16 must stay green. Exits non-zero on failure.
+- **The gate:** `python3 dify_yml/tests/test_engine.py` after every yml change. It extracts the guard/engine/envelope code from the yml and runs it (so it tests the real deployed logic). 18/18 must stay green. Exits non-zero on failure.
 - **Engine is deterministic; LLM only Interprets (in) and Renders (out).** Every wrong move = data / logic / prompt. Constants live once (`DECLINE_FLOOR 0.45`, `TIE_BAND 0.10`, `CLARIFY_CAP 2`, `attempts_cap 4`).
 - **Knowledge is single-sourced.** Mary reads `knowledge/<machine>.json`; don't let the yml's env-var knowledge copy diverge from the repo's `knowledge.json`.
 - **Git-native engine/prompts = deferred (ADR-0002), do it alongside v5.2.** Until then the yml is authored directly; the extract-and-run test already guards correctness.
 - **Never deploy without sign-off.** Export the yml, run the gate, then a human imports to Dify.
+- **Status vocabulary:** engine writes `resolved` (was `green`) and `unresolved` (was `amber`/`red`) — matches `contracts/runtime.schema.json` enum. Never reintroduce color strings.
+- **Interpret kind `other`:** greetings, filler, unclassifiable → `other`, never `symptom`. Engine: `other` at session start → INTAKE re-prompt (reported stays empty); mid-flow → re-ask current question without advancing state. Principle: advance on positive evidence only.
 
 ## v5.2 backlog (planned, not started)
 P0 `no_answer` (don't let "dunno" clear a cause) · A7 wrong-machine redirect · A6 QA-flag for parameter changes (distinct from safety STOP) · clarify plausibility-floor.
