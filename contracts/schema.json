@@ -1,6 +1,501 @@
 {
-  "$comment": "PLACEHOLDER. Replace with the real knowledge-base schema. This is the contract that distill/ targets and that build/ + eval/ assume. Changing it is a contract change: re-distill knowledge, and revisit the fact-gate/engine.",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "knowledge",
-  "type": "object"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://machinemary.local/schema/v3/schema.json",
+  "title": "Machine Mary knowledge schema — v3 (reconciled)",
+  "description": "Formal JSON Schema derived from the agreed-upon v3 worked-example instance (2026-06-13-machine-mary-schema-v3.example.json). Seven runtime entities (machine_component, failure_mode, check, procedure, step, case, source_asset) plus warning and the acquisition-side interview_record. Any property whose name begins with '$' is treated as a free-form annotation (e.g. $v3_notes, $composite, $entity, $meta) and permitted everywhere.",
+  "type": "object",
+  "properties": {
+    "$meta": { "type": "object" },
+    "machine_components": { "type": "array", "items": { "$ref": "#/$defs/machine_component" } },
+    "failure_modes": { "type": "array", "items": { "$ref": "#/$defs/failure_mode" } },
+    "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } },
+    "procedures": { "type": "array", "items": { "$ref": "#/$defs/procedure" } },
+    "steps": { "type": "array", "items": { "$ref": "#/$defs/step" } },
+    "cases": { "type": "array", "items": { "$ref": "#/$defs/case" } },
+    "source_assets": { "type": "array", "items": { "$ref": "#/$defs/source_asset" } },
+    "warnings": { "type": "array", "items": { "$ref": "#/$defs/warning" } },
+    "interview_records": { "type": "array", "items": { "$ref": "#/$defs/interview_record" } }
+  },
+  "patternProperties": { "^\\$": {} },
+  "additionalProperties": true,
+
+  "$defs": {
+    "dateOrNull": {
+      "type": ["string", "null"],
+      "description": "ISO date (YYYY-MM-DD) or date-time, or null when never seen."
+    },
+
+    "source_ref": {
+      "type": "object",
+      "description": "Polymorphic pointer into a source_asset (replaces inline media_ref/media everywhere).",
+      "properties": {
+        "asset": { "type": "string", "description": "id of the target source_asset" },
+        "kind": { "type": "string", "enum": ["clip", "still", "doc_region"] },
+        "locator": {
+          "type": "object",
+          "description": "kind-specific locator: clip -> {t:[start,end]}, still -> {t} or bbox, doc_region -> {page,bbox}.",
+          "additionalProperties": true
+        },
+        "description": { "type": "string" }
+      },
+      "required": ["asset", "kind"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "source_ref_nullable": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/source_ref" }]
+    },
+
+    "operational_context": {
+      "type": "object",
+      "description": "Generalized operating state at the time of the symptom/case. Same alarm + different operation = different fault. Present on every failure_mode signature and on every case.",
+      "properties": {
+        "operation": { "type": "string" },
+        "cut_type": { "type": "string" },
+        "program": { "type": "string" },
+        "block": { "type": "string" },
+        "active_tool": { "type": "string" },
+        "active_offset": { "type": "string" },
+        "machine_mode": { "type": "string" },
+        "selected_library": { "type": "string" },
+        "stopped_phase": { "type": "string" }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": true
+    },
+
+    "machine_component": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "machine_id": { "type": "string" },
+        "parent": { "type": ["string", "null"] },
+        "level": { "type": "string", "description": "e.g. machine | subsystem | component" },
+        "name": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } },
+        "energy_bearing": {
+          "type": "boolean",
+          "description": "true arms the deterministic LOTO gate before any procedure step accesses this component."
+        },
+        "iso14224_class": { "type": ["string", "null"] }
+      },
+      "required": ["id", "machine_id", "level", "name", "energy_bearing"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "cause": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "mechanism": { "type": "string" },
+        "seed_prior": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "SME's elicited 'out of ten' count (numeric in v3, was a high|low enum in v2). Drives cold-start cause ranking."
+        },
+        "case_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Confirmed occurrences of THIS cause. Feeds the recency-weighted frequency term of the weekly cause re-ranking."
+        },
+        "last_seen": { "$ref": "#/$defs/dateOrNull" },
+        "action_level": { "type": "string", "enum": ["L1", "L2", "L3"] },
+        "escalate_to": {
+          "type": "string",
+          "enum": ["none", "programmer", "maintenance", "qa", "tech_denver"]
+        },
+        "confirm_checks": { "type": "array", "items": { "type": "string" } },
+        "procedures": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "mechanism", "seed_prior", "case_count", "action_level", "escalate_to", "confirm_checks", "procedures"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "symptom_signature": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "[component_ref, state] pairs that must hold.",
+          "items": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "observations": { "type": "array", "items": { "type": "string" } },
+        "alarm_codes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Real Siemens NC codes verbatim. The 700000-799999 builder band is a non-numeric placeholder (defer, never fabricate)."
+        },
+        "operator_phrases": { "type": "array", "items": { "type": "string" } },
+        "operational_context": { "$ref": "#/$defs/operational_context" }
+      },
+      "required": ["conditions", "observations", "alarm_codes", "operator_phrases"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "failure_mode": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "component_ref": { "type": "string" },
+        "title": { "type": "string" },
+        "guardrail": {
+          "type": "boolean",
+          "description": "true = escalate-always mode that cannot be silently overridden by a later cause addition."
+        },
+        "case_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Times this failure mode has presented — the Vault count keyed to the mode (includes amber/unresolved cases that matched but never landed on a cause). This is Match's fault-frequency tiebreak. MUST NOT be derived as the sum of causes[].case_count (that undercounts). 0 at cold start."
+        },
+        "symptom_signature": { "$ref": "#/$defs/symptom_signature" },
+        "causes": { "type": "array", "items": { "$ref": "#/$defs/cause" }, "minItems": 1 },
+        "anti_pattern": { "type": "string" }
+      },
+      "required": ["id", "component_ref", "title", "guardrail", "case_count", "symptom_signature", "causes"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "cost": {
+      "type": "object",
+      "properties": {
+        "time_min": { "type": "number", "minimum": 0 },
+        "skill": { "type": "string" },
+        "machine_state": { "type": "string" }
+      },
+      "required": ["time_min", "skill", "machine_state"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "check": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ask": { "type": "string" },
+        "observation_type": {
+          "type": "string",
+          "description": "Gates the SOUL's 'audio checks only for reliable cues' rule (e.g. control_panel, visual, audio)."
+        },
+        "answers": { "type": "array", "items": { "type": "string" } },
+        "cost": { "$ref": "#/$defs/cost" },
+        "safety_gate": { "type": ["string", "object", "null"] },
+        "discriminates": {
+          "type": "object",
+          "description": "map of cause_id -> the answer value that confirms/clears it (binary in v3).",
+          "additionalProperties": { "type": "string" }
+        },
+        "source_ref": { "$ref": "#/$defs/source_ref_nullable" }
+      },
+      "required": ["id", "ask", "observation_type", "answers", "cost"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "preliminary_safety_item": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "description": "e.g. machine_state | caution" },
+        "require": { "type": "string" },
+        "ref": { "type": "string" }
+      },
+      "required": ["type"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "preliminary": {
+      "type": "object",
+      "properties": {
+        "safety": { "type": "array", "items": { "$ref": "#/$defs/preliminary_safety_item" } },
+        "tools": { "type": "array", "items": { "type": "string" } },
+        "skill": { "type": "string" },
+        "est_min": { "type": "number", "minimum": 0 }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "closeout": {
+      "type": "object",
+      "properties": {
+        "verify": { "type": "string" },
+        "on_verify_fail": { "type": "string" },
+        "restore": { "type": "array", "items": { "type": "string" } },
+        "capture": { "type": "array", "items": { "type": "string" } }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "handoff": {
+      "type": ["object", "null"],
+      "description": "Present only on escalate/defer procedures (null on operator_fix). Carries machine-readable escalation context.",
+      "properties": {
+        "action": { "type": "string" },
+        "escalate_to": { "type": "string" },
+        "capture_fields": { "type": "array", "items": { "type": "string" } }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "procedure_source": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "description": "e.g. video_onboarding | authored_seed" },
+        "source_ref": { "$ref": "#/$defs/source_ref_nullable" },
+        "sme": { "type": "string" },
+        "soul_version": { "type": "string" },
+        "approved_by": { "type": "string" }
+      },
+      "required": ["type"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "resolves": {
+      "type": "object",
+      "properties": {
+        "failure_mode": { "type": ["string", "null"] },
+        "causes": { "type": "array", "items": { "type": "string" } }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "procedure": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["operator_fix", "escalate", "defer", "operational"],
+          "description": "operator_fix has steps; escalate/defer end at handoff with no steps; operational = non-fault how-to (tours/SOPs)."
+        },
+        "resolves": { "$ref": "#/$defs/resolves" },
+        "preliminary": { "$ref": "#/$defs/preliminary" },
+        "steps": { "type": "array", "items": { "type": "string" } },
+        "closeout": { "$ref": "#/$defs/closeout" },
+        "handoff": { "$ref": "#/$defs/handoff" },
+        "source": { "$ref": "#/$defs/procedure_source" }
+      },
+      "required": ["id", "kind", "resolves", "steps", "source"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "on_deviation": {
+      "type": "object",
+      "properties": {
+        "policy": { "type": "string" },
+        "branch_ref": { "type": ["string", "null"] },
+        "safe_state": { "type": "string" },
+        "capture": { "type": "boolean" }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "step": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "component_ref": { "type": "string" },
+        "warnings_before": { "type": "array", "items": { "type": "string" } },
+        "media": { "$ref": "#/$defs/source_ref_nullable" },
+        "expected_result": { "type": "string" },
+        "safety_after": { "type": "array", "items": { "type": "string" } },
+        "complexity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "skippable": {
+          "type": "boolean",
+          "description": "A veteran may skip a skippable:true step; safety steps/gates are false."
+        },
+        "on_deviation": { "$ref": "#/$defs/on_deviation" }
+      },
+      "required": ["id", "action", "component_ref", "skippable"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "case_check": {
+      "type": "object",
+      "properties": {
+        "ref": { "type": "string" },
+        "ask_snapshot": {
+          "type": "string",
+          "description": "Immutable copy of check.ask text at write time (AS9100 audit — proves what THIS operator saw even after the live check changes)."
+        },
+        "answer": { "type": "string" }
+      },
+      "required": ["ref", "ask_snapshot", "answer"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "outcome": {
+      "type": "object",
+      "properties": {
+        "fixed": { "type": "boolean" },
+        "first_time_fix": { "type": "boolean" },
+        "minutes": { "type": "number", "minimum": 0 }
+      },
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "case": {
+      "type": "object",
+      "description": "Written INCREMENTALLY from intake at status:open — no separate session entity.",
+      "properties": {
+        "id": { "type": "string" },
+        "machine": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "amber", "green"] },
+        "source_confidence": {
+          "type": "string",
+          "enum": ["proto", "validated", "vault"],
+          "description": "proto = operator self-remedy (DEMAND ranking only, never cause ranking) until Denver validates."
+        },
+        "reported": { "type": "string" },
+        "operational_context": { "$ref": "#/$defs/operational_context" },
+        "matched_fm": { "type": ["string", "null"] },
+        "checks": { "type": "array", "items": { "$ref": "#/$defs/case_check" } },
+        "attempts": {
+          "type": "array",
+          "description": "Back-edge re-dx memory: the tried-and-failed cause/procedure chain. Empty on a single-cause confirm.",
+          "items": {}
+        },
+        "confirmed_cause": { "type": ["string", "null"] },
+        "procedure": { "type": ["string", "null"] },
+        "deviations": { "type": "array", "items": {} },
+        "outcome": { "$ref": "#/$defs/outcome" },
+        "resolution_note": { "type": "string", "description": "The fix in the operator's own words." },
+        "safety_acks": { "type": "array", "items": { "type": "string" } },
+        "resolves_case": {
+          "type": ["string", "null"],
+          "description": "OPTIONAL — set only when a green case closes a prior amber (the live amber->green learning demo)."
+        },
+        "operator": { "type": "string" },
+        "lang": { "type": "string" },
+        "session": { "type": "string" },
+        "promotion": { "$ref": "#/$defs/promotion" }
+      },
+      "required": ["id", "machine", "timestamp", "status", "source_confidence", "reported"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "promotion": {
+      "type": "object",
+      "description": "Gate recorded when a case (operator close-out) is promoted into Trusted memory — the store Match reads. Closes the P6 / gap-#1 hole: promotion is an authenticated, provenance-tagged, dual-signed, tamper-evident write, not an open one. Absent until the case is reviewed for promotion.",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["candidate", "trusted", "demoted"],
+          "description": "candidate = queued/auto-staged; trusted = readable by Match; demoted = revoked (one-click)."
+        },
+        "provenance": {
+          "type": "string",
+          "enum": ["plant", "oem", "research"],
+          "description": "Provenance stamped on the promoted entry (research never grounds a number)."
+        },
+        "promoted_at": { "type": ["string", "null"] },
+        "reviewers": {
+          "type": "array",
+          "description": "Authenticated sign-offs. Two-person sign-off is the default policy (minItems 2); relaxing to one + audit is a policy change, not a schema change.",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "role": { "type": "string" },
+              "signed_at": { "type": "string" }
+            },
+            "required": ["id", "role", "signed_at"],
+            "patternProperties": { "^\\$": {} },
+            "additionalProperties": false
+          }
+        },
+        "tamper_evident": {
+          "type": "object",
+          "description": "Append-only chain entry: hash over the promoted case snapshot plus the previous entry's hash.",
+          "properties": {
+            "prev_hash": { "type": ["string", "null"] },
+            "entry_hash": { "type": "string" }
+          },
+          "required": ["entry_hash"],
+          "patternProperties": { "^\\$": {} },
+          "additionalProperties": false
+        },
+        "expires": { "$ref": "#/$defs/dateOrNull" }
+      },
+      "required": ["state", "provenance", "reviewers"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "source_asset": {
+      "type": "object",
+      "description": "Uniform catch-all for ANY source type (video, oem_manual, datasheet, document, research). Every source_ref points here.",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "provenance": {
+          "type": "string",
+          "enum": ["plant", "oem", "research"],
+          "description": "'trusted' = plant|oem; research never grounds a number. confidence_tier (T1-T5) deliberately trimmed out until the research portal is real."
+        },
+        "sme": { "type": "string" },
+        "title": { "type": "string" },
+        "duration_s": { "type": "number", "minimum": 0 },
+        "transcript_ref": { "type": "string" }
+      },
+      "required": ["id", "type", "provenance"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "warning": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" }
+      },
+      "required": ["id", "text"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    },
+
+    "interview_record": {
+      "type": "object",
+      "description": "Entity 0 — acquisition-side only, NOT loaded into Mary's runtime context. Seeds stub failure modes, the alias table, and proto-cases.",
+      "properties": {
+        "id": { "type": "string" },
+        "operator": { "type": "string" },
+        "lang": { "type": "string" },
+        "component_alias": { "type": "string" },
+        "issue_phrase": { "type": "string" },
+        "frequency": { "type": "string" },
+        "last_seen": { "$ref": "#/$defs/dateOrNull" },
+        "escalation_target": { "type": "string" },
+        "self_remedy": { "type": "string" },
+        "confidence": { "type": "string" }
+      },
+      "required": ["id", "operator", "issue_phrase"],
+      "patternProperties": { "^\\$": {} },
+      "additionalProperties": false
+    }
+  }
 }

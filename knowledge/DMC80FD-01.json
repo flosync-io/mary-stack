@@ -1,0 +1,2041 @@
+{
+ "machine_id": "DMC80FD-01",
+ "soul_version": "draft",
+ "machine_components": [
+  {
+   "id": "cmp_machine_dmc80fd",
+   "machine_id": "DMC80FD-01",
+   "parent": null,
+   "level": "machine",
+   "name": "DMG MORI DMC 80 FD duoBLOCK (5-axis mill-turn)",
+   "aliases": [
+    "the 80",
+    "the big 5-axis",
+    "the duoBLOCK",
+    "the DMG",
+    "the DMC 80",
+    "the big DMG"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "machine_tool"
+  },
+  {
+   "id": "cmp_spindle",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "component",
+   "name": "Milling/turning spindle",
+   "aliases": [
+    "the spindle",
+    "speedMASTER",
+    "powerMASTER",
+    "torqueMASTER motor spindle"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "spindle"
+  },
+  {
+   "id": "cmp_tool_clamp",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_spindle",
+   "level": "component",
+   "name": "Spindle tool clamp / pull-in (drawbar)",
+   "aliases": [
+    "drawbar",
+    "tool clamp",
+    "pull stud / retention knob interface"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "tool_clamp"
+  },
+  {
+   "id": "cmp_linear_axes",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "subsystem",
+   "name": "Linear feed axes X/Y/Z",
+   "aliases": [
+    "the travels",
+    "the slides",
+    "X-axis",
+    "Y-axis",
+    "Z-axis",
+    "the axes"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "linear_axis"
+  },
+  {
+   "id": "cmp_b_axis",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "component",
+   "name": "Swivel axis B (swivel head)",
+   "aliases": [
+    "B-axis",
+    "swivel head",
+    "spindle carrier",
+    "tilt",
+    "the head"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "rotary_axis"
+  },
+  {
+   "id": "cmp_c_table",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "component",
+   "name": "Rotary table / C axis (FD DirectDrive turning table)",
+   "aliases": [
+    "C-axis",
+    "DirectDrive rotary table",
+    "the table",
+    "the rotary table",
+    "turning spindle"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "rotary_axis"
+  },
+  {
+   "id": "cmp_tool_changer",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "subsystem",
+   "name": "Tool changer + magazine (ATC)",
+   "aliases": [
+    "ATC",
+    "double-gripper changer",
+    "magazine",
+    "carousel",
+    "the arm",
+    "tool pockets",
+    "wheel magazine"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "tool_changer"
+  },
+  {
+   "id": "cmp_coolant_flood",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "subsystem",
+   "name": "Flood coolant system (KSS)",
+   "aliases": [
+    "coolant",
+    "the cooler",
+    "chiller",
+    "coolant unit",
+    "KSS",
+    "flood coolant",
+    "washdown",
+    "the coolant tank"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "coolant_system",
+   "$energy_note": "Pump is electrical/low-energy by itself, but coolant system carried energy_bearing=true per 05-safety-loto: coolant/high-pressure pumps are LOTO-controlled (unexpected pump start, high-pressure spray)."
+  },
+  {
+   "id": "cmp_coolant_tsc",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_coolant_flood",
+   "level": "component",
+   "name": "Through-spindle coolant (TSC, high-pressure)",
+   "aliases": [
+    "through-tool coolant",
+    "internal coolant",
+    "high-pressure coolant",
+    "TSC"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "coolant_system"
+  },
+  {
+   "id": "cmp_hydraulics",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "subsystem",
+   "name": "Hydraulic power unit + accumulator",
+   "aliases": [
+    "hydraulics",
+    "HPU",
+    "accumulator"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "hydraulic_system"
+  },
+  {
+   "id": "cmp_safety_integrated",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "subsystem",
+   "name": "SINUMERIK Safety Integrated (SI) / E-Stop circuit & door interlocks",
+   "aliases": [
+    "Safety Integrated",
+    "SI",
+    "safe stop",
+    "E-Stop circuit",
+    "the safety",
+    "door interlock",
+    "guard lock"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "safety_system"
+  },
+  {
+   "id": "cmp_operator_panel",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_machine_dmc80fd",
+   "level": "component",
+   "name": "Operator panel / HMI (ERGOline X / CELOS, SINUMERIK Operate)",
+   "aliases": [
+    "the panel",
+    "HMI",
+    "CELOS",
+    "ERGOline X",
+    "the screen",
+    "MCP",
+    "machine control panel"
+   ],
+   "energy_bearing": false,
+   "iso14224_class": "control_hmi"
+  },
+  {
+   "id": "cmp_offset_screens",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_operator_panel",
+   "level": "component",
+   "name": "Work-offset & tool-data screens (Parameter area: work offsets, tool list, magazine list)",
+   "aliases": [
+    "the zero page",
+    "G54 page",
+    "the offsets",
+    "tool list",
+    "tool table",
+    "the data screen",
+    "work offset screen",
+    "magazine list"
+   ],
+   "energy_bearing": false,
+   "iso14224_class": "control_data"
+  },
+  {
+   "id": "cmp_tool_library",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_operator_panel",
+   "level": "component",
+   "name": "Active tool library / TO unit (the loaded recipe for the job)",
+   "aliases": [
+    "the library",
+    "the recipe",
+    "the program set",
+    "TO unit",
+    "tool data set"
+   ],
+   "energy_bearing": false,
+   "iso14224_class": "control_data"
+  }
+ ],
+ "failure_modes": [
+  {
+   "id": "fm_limit_at_cycle_start",
+   "component_ref": "cmp_linear_axes",
+   "title": "Limit / working-area alarm at cycle start (machine won't move)",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_linear_axes",
+      "not_moving"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "cycle_start_pressed"
+     ]
+    ],
+    "observations": [
+     "Alarm fires the instant cycle start is pressed; machine has not moved",
+     "Alarm text names a travel/axis (operators recall Z named)",
+     "Often first job of the morning, after a power-down, or a new setup / Monday"
+    ],
+    "alarm_codes": [
+     "10620",
+     "10621",
+     "10630",
+     "10631",
+     "10720",
+     "10721",
+     "10730",
+     "10731",
+     "10203"
+    ],
+    "operator_phrases": [
+     "won't run, says limit",
+     "limit alarm, machine hasn't even moved",
+     "travel limit and stops",
+     "limit on Z",
+     "working-area alarm at cycle start",
+     "usually 10720 or 10730"
+    ],
+    "operational_context": {
+     "operation": "OP20 / first part of new setup or first job after power-down",
+     "machine_mode": "AUTO",
+     "stopped_phase": "cycle_start_pre_motion"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_unreferenced_axis",
+     "mechanism": "One or more axes not referenced/homed after power-down \u2014 control does not know position, refuses motion (cf. 10203 NC start without reference point). Reference symbols missing on the position page.",
+     "seed_prior": 7,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L1",
+     "escalate_to": "none",
+     "confirm_checks": [
+      "chk_reference_symbols",
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_reference_axes"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Joe & veteran both cite unreferenced axis as the usual cause; Joe self-checks reference symbols each morning; ~monthly per operator, more shop-wide after power-downs/Mondays. High emphasis."
+    },
+    {
+     "id": "cause_wrong_work_offset",
+     "mechanism": "Active work offset (G54 part zero) is wrong/zeroed or was bumped \u2014 first commanded position lands beyond a software or working-area limit. Distinct from tool offset (length). NOT to be silenced by widening limits.",
+     "seed_prior": 6,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L2",
+     "escalate_to": "programmer",
+     "confirm_checks": [
+      "chk_g54_vs_traveler",
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_verify_work_offset",
+      "proc_escalate_offset_programmer"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Peter: G54 part zero wrong on new setup (re-probed, ~20 min with Denver); veteran: 'someone bumped the offset.' Every-few-weeks/operator, ~weekly shop-wide. Slightly below unreferenced-axis because that is operators' most-cited first cause."
+    }
+   ],
+   "anti_pattern": "Do NOT widen the software limit or 'nudge'/eyeball an offset to make the move reach, and do not reflex reset-and-rerun (Peter and veteran both did this; Peter was stopped \u2014 re-running a wrong zero re-presents it at the part). A 10620 software-limit hit is machine protection; do not relax without engineering/AS9100 change control.",
+   "aliases": []
+  },
+  {
+   "id": "fm_5axis_orientation_mismatch",
+   "component_ref": "cmp_tool_library",
+   "title": "5-axis orientation fault \u2014 head won't go to that angle (wrong library for fixture rev)",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_b_axis",
+      "not_at_commanded_angle"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "stopped_mid_program"
+     ]
+    ],
+    "observations": [
+     "Program runs in, then stops dead at a motion block (operators cite N490 on the OP20 bracket)",
+     "Alarm/text: orientation not possible / can't do that angle; head won't tilt",
+     "Bracket / forging-variant family; rising since the new fixture revision came in",
+     "Library names look near-identical, differ by revision suffix (e.g. LIB-083 vs LIB-087)"
+    ],
+    "alarm_codes": [
+     "14100",
+     "14101"
+    ],
+    "operator_phrases": [
+     "the head won't go to that angle",
+     "orientation not possible",
+     "picked the bracket program and it faulted at N490",
+     "wrong library for the fixture rev",
+     "recipe not matching the forging",
+     "program faults at a motion block"
+    ],
+    "operational_context": {
+     "operation": "OP20 bracket finish / 5-axis variant job",
+     "block": "N490 (operator-reported instance)",
+     "selected_library": "bracket-finish library (LIB-083 vs LIB-087 by fixture rev)",
+     "machine_mode": "AUTO",
+     "stopped_phase": "mid_program_orientation_block"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_wrong_library_fixture_rev",
+     "mechanism": "Wrong tool library / recipe loaded for the current fixture revision \u2014 the recipe was proven against the prior fixture rev (relocated locator/clamp). Part number unchanged so nothing alarms on identity; geometry/orientation no longer fits, head cannot reach the commanded angle. Identity mismatch, not a machine fault.",
+     "seed_prior": 8,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L2",
+     "escalate_to": "programmer",
+     "confirm_checks": [
+      "chk_library_vs_traveler",
+      "chk_fixture_rev_tag"
+     ],
+     "procedures": [
+      "proc_reload_correct_library",
+      "proc_escalate_orientation_programmer"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Co-anchored by Peter, Alex AND the veteran (veteran's #1: 'Wrong library. Every time.'); Denver's diagnosis on Peter's case; few times/month, rising since new fixture rev. Highest emphasis across interviews \u2014 top provisional prior."
+    },
+    {
+     "id": "cause_transform_not_active_program",
+     "mechanism": "Library name matches traveler but the kinematic transformation (TRAORI) the program assumed is not active/set up, or a swivel-plane/CYCLE800 orientation the running state doesn't have \u2014 a genuine program-side problem. Operator escalates; never toggles TRAORI or edits transformation data.",
+     "seed_prior": 3,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "programmer",
+     "confirm_checks": [
+      "chk_library_vs_traveler"
+     ],
+     "procedures": [
+      "proc_escalate_orientation_programmer"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Research (03-5axis) names TRAORI not-active / CYCLE800 as the secondary class once identity matches; interviews route this to Denver ('if names line up, that's Denver'). Lower prior \u2014 operators rarely reach it because wrong-library dominates."
+    }
+   ],
+   "anti_pattern": "Do NOT grab the closest-looking library off the list to keep moving (multiple operators report colleagues doing this \u2014 'how you buy a titanium paperweight'), do not block-search into the middle of a 5-axis/transformed move to skip the stop, and do not jog a rotary axis to line it up. Veteran self-swaps without single-block on a known job \u2014 capture, do not endorse for juniors.",
+   "aliases": []
+  },
+  {
+   "id": "fm_wrong_tool_data",
+   "component_ref": "cmp_offset_screens",
+   "title": "Wrong / missing tool data \u2014 tool not in magazine, length blank, or wrong length crash",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_offset_screens",
+      "tool_data_mismatch"
+     ],
+     [
+      "cmp_tool_changer",
+      "tool_not_resolving"
+     ]
+    ],
+    "observations": [
+     "Program calls a tool and stops: 'tool not in magazine' / not available (tool in wrong pocket)",
+     "Tool physically present but length/data blank or zero in the tool list",
+     "No alarm but wrong depth/position, or a crash into the fixture (wrong length after a regrind)"
+    ],
+    "alarm_codes": [
+     "6404",
+     "6421",
+     "6422",
+     "6431",
+     "6432",
+     "14180",
+     "14185"
+    ],
+    "operator_phrases": [
+     "says tool not in magazine",
+     "T42 wasn't where it should be",
+     "the length wasn't in the table",
+     "tool was there but the data wasn't in the list",
+     "wrong length, tool went right into the fixture",
+     "didn't check the tool data after a regrind"
+    ],
+    "operational_context": {
+     "operation": "tool-change block / first cut after a tool swap or regrind",
+     "machine_mode": "AUTO",
+     "stopped_phase": "tool_change_or_first_cut"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_tool_wrong_pocket",
+     "mechanism": "Tool physically in the wrong magazine pocket vs the setup sheet (pulled for another job, returned wrong). Pure identity/location mismatch \u2014 operator can correct by matching magazine to setup sheet.",
+     "seed_prior": 6,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L1",
+     "escalate_to": "none",
+     "confirm_checks": [
+      "chk_tool_pocket_vs_sheet",
+      "chk_tool_length_present"
+     ],
+     "procedures": [
+      "proc_match_magazine_to_sheet"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Joe's T42-in-wrong-pocket: he self-remedies this every few weeks. Operator-fixable, frequent \u2014 moderate-high prior."
+    },
+    {
+     "id": "cause_tool_length_missing_or_wrong",
+     "mechanism": "Tool length/diameter blank, stale, or wrong in the tool table (not updated after a regrind, or transcription error). Feeds a bad number to every cut: cuts air, wrong depth, or crash into fixture. Operator must NOT invent a value \u2014 programmer/Denver measures and sets.",
+     "seed_prior": 5,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "programmer",
+     "confirm_checks": [
+      "chk_tool_length_present",
+      "chk_tool_length_vs_preset"
+     ],
+     "procedures": [
+      "proc_escalate_tool_data"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Alex (once, length blank), veteran (crash after regrind, 'always tool data'). Veteran ranks it as a serious/crash-class item but personally rare for juniors; emphatic 'you do NOT make up a tool length.' Mid prior."
+    }
+   ],
+   "anti_pattern": "Never hand-type / make up a tool length or diameter to clear the stop ('the fastest crash in the building'); never transfer wear into geometry; never pick a similar tool or renumber a pocket to dodge the alarm; do not keep cutting 'to see.'",
+   "aliases": []
+  },
+  {
+   "id": "fm_wrong_tool_library_loaded",
+   "component_ref": "cmp_tool_library",
+   "title": "Wrong tool library / TO unit loaded \u2014 tool name not defined at the change block",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_tool_library",
+      "wrong_library_active"
+     ],
+     [
+      "cmp_tool_changer",
+      "tool_not_resolving"
+     ]
+    ],
+    "observations": [
+     "Control stops at the tool-change block with a 'name not defined' type stop",
+     "Active tool list / library on screen is not the one named on the traveler",
+     "Among ~140 near-identically-named libraries, the wrong one is a few characters away"
+    ],
+    "alarm_codes": [
+     "12550"
+    ],
+    "operator_phrases": [
+     "name not defined",
+     "wrong library / wrong recipe loaded",
+     "the program set doesn't match the traveler",
+     "library name vs traveler doesn't line up"
+    ],
+    "operational_context": {
+     "operation": "first tool-change block of the program",
+     "selected_library": "active TO unit vs traveler-named library (case-sensitive, revision suffix)",
+     "machine_mode": "AUTO",
+     "stopped_phase": "tool_change_block"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_wrong_library_selected",
+     "mechanism": "Operator selected the wrong tool library / TO unit for the job (picked from a pick-list of ~140 near-identical names; case-sensitive identifiers, revision suffix look-alikes). The named tool cannot resolve. Identity check (name on screen vs name on traveler) catches it before the first chip.",
+     "seed_prior": 7,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L2",
+     "escalate_to": "programmer",
+     "confirm_checks": [
+      "chk_library_vs_traveler"
+     ],
+     "procedures": [
+      "proc_reload_correct_library",
+      "proc_escalate_library_unresolved"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Distinct from the orientation fault (this surfaces at the tool-change/name-resolve stage, 12550, not a motion-block orientation stop). Grounded in 03-5axis (12550 class) + 10-tooling-library identity check; veteran/Peter library discipline. Moderate-high prior."
+    }
+   ],
+   "anti_pattern": "Do not pick a similar/closest tool or renumber a pocket to clear the name-not-defined stop, and do not create/edit tool entries to make the alarm go away. A name mismatch is a revision-control question for the setter/programmer/quality, not an operator edit.",
+   "aliases": []
+  },
+  {
+   "id": "fm_protection_zone_violation",
+   "component_ref": "cmp_machine_dmc80fd",
+   "title": "Protection / collision-zone violation (won't run; looks like the limit alarm)",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_machine_dmc80fd",
+      "not_moving"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "zone_violation"
+     ]
+    ],
+    "observations": [
+     "Alarm at cycle start or on a move; text says protection zone or working area; won't run",
+     "Looks a lot like the limit alarm \u2014 distinguished only by the alarm number"
+    ],
+    "alarm_codes": [
+     "10700",
+     "10701",
+     "10702",
+     "10703",
+     "10704"
+    ],
+    "operator_phrases": [
+     "zone alarm",
+     "collision zone",
+     "says protection zone",
+     "path through a protected area"
+    ],
+    "operational_context": {
+     "operation": "cycle start or mid-move",
+     "machine_mode": "AUTO/MDA",
+     "stopped_phase": "zone_check"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_program_path_through_zone",
+     "mechanism": "Programmed/look-ahead path would enter an NCK or channel protection zone. Operator does not override the zone \u2014 reads the alarm number to separate it from a software-limit hit, then routes to programmer/maintenance. Program/setup is reviewed, retracted, corrected by the owner.",
+     "seed_prior": 2,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "programmer",
+     "confirm_checks": [
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_escalate_zone"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Peter only: 'twice ever,' last spring, 'we don't mess with it.' Rare; low prior. Carried as a separate mode because research flags its signature overlaps the limit alarm (different number is the discriminator)."
+    }
+   ],
+   "anti_pattern": "Do not override or disable the protection zone to keep running, and do not block-search past it. The zone is a collision guard; correction is the program/setup owner's, not the operator's.",
+   "aliases": []
+  },
+  {
+   "id": "fm_safety_integrated_stop",
+   "component_ref": "cmp_safety_integrated",
+   "title": "Safety Integrated safe-stop (STOP A\u2013E / E-stop / NCK-PLC cross-check stop) \u2014 escalate, never override",
+   "guardrail": true,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_safety_integrated",
+      "safe_stop_active"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "stopped"
+     ]
+    ],
+    "observations": [
+     "Machine performs a safe-stop (drives ramped down / coast-stopped); alarm in the 27xxx Safety Integrated family or a 30xx emergency-stop",
+     "Often after a door/interlock or E-stop event; cannot reset without clearing the underlying fault",
+     "Operators treat it as a straight maintenance call ('you don't touch those')"
+    ],
+    "alarm_codes": [
+     "3000",
+     "3001",
+     "27001",
+     "27020",
+     "27021",
+     "27022",
+     "27023",
+     "27024",
+     "27090",
+     "27091",
+     "27092"
+    ],
+    "operator_phrases": [
+     "safe-stop deal",
+     "alarm was 27-something",
+     "door thing, the machine did its safe-stop",
+     "E-stop latched",
+     "it stopped hard and won't reset"
+    ],
+    "operational_context": {
+     "operation": "any \u2014 safety event",
+     "machine_mode": "any",
+     "stopped_phase": "safe_stop"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_si_safe_stop",
+     "mechanism": "A safety channel demanded a safe state \u2014 a STOP A\u2013E was triggered (alarms 27020\u201327024), an NCK\u2194PLC SI cross-check deviation stopped an axis (27090/27091/27092), a monitoring-channel error fired (27001), or an emergency stop was asserted (3000/3001, e.g. door/interlock/E-stop button). Points at the safety system itself, not a routine clear-and-rerun. Investigated by qualified maintenance, never overridden or force-reset.",
+     "seed_prior": 1,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "maintenance",
+     "confirm_checks": [
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_escalate_safety"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Joe: 'once ever, straight maintenance call'; Peter: passing mention. Rare; lowest-but-present prior. guardrail=true forces escalate-always regardless of frequency. Codes grounded verbatim in 840Dsl_alarms_diagnostics_2019 (27020 'stop E triggered' \u2026 27024 'stop A triggered'; 27090/27091/27092 NCK-PLC data cross-check; 27001 monitoring channel; 3000/3001 emergency stop)."
+    }
+   ],
+   "anti_pattern": "Never override, suppress, or force-reset a Safety Integrated / 27xxx safe stop or a 30xx E-stop to keep running; never treat E-stop/RESET/mode-switch as a lockout; never bypass or 'trick' a door interlock or light curtain. A safe stop is investigated, not cleared.",
+   "aliases": []
+  },
+  {
+   "id": "fm_si_not_safely_referenced",
+   "component_ref": "cmp_safety_integrated",
+   "title": "Safety Integrated: axis not safely referenced (safe cams/SI homing not established) \u2014 escalate, never override",
+   "guardrail": true,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_safety_integrated",
+      "not_safely_referenced"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "stopped"
+     ]
+    ],
+    "observations": [
+     "27xxx alarm states an axis (or 'at least one axis') is NOT safely referenced \u2014 distinct from the ordinary NC reference symbol",
+     "Safe position-dependent functions (safe end position / safe cams) will not run until SI re-referencing is established",
+     "Operators must not 'reference past it' with an ordinary homing trick \u2014 SI referencing is a maintenance/commissioning function"
+    ],
+    "alarm_codes": [
+     "27000",
+     "27100"
+    ],
+    "operator_phrases": [
+     "says safely referenced, not the normal reference thing",
+     "27-something about referencing",
+     "won't take the safe positions",
+     "it's a safety reference one"
+    ],
+    "operational_context": {
+     "operation": "after power-up / SI startup, or after an encoder/hardware event",
+     "machine_mode": "any",
+     "stopped_phase": "si_reference_check"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_si_not_safely_referenced",
+     "mechanism": "Safety Integrated does not have a valid safe reference for an axis (27000 'Axis is not safely referenced' / 27100 'At least one axis is not safely referenced'). Safe position-monitoring (safe end position, safe cams) cannot be guaranteed. SI re-referencing / user agreement is a qualified maintenance/commissioning task \u2014 NOT the ordinary JOG-REF the operator does each morning, and NOT something the operator force-clears.",
+     "seed_prior": 1,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "maintenance",
+     "confirm_checks": [
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_escalate_safety"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. No operator named this specifically; carried as a distinct SI mode because the manuals (840Dsl_alarms_diagnostics_2019: 27000 'Axis %1 is not safely referenced', 27100 'At least one axis is not safely referenced') describe a safety-referencing failure that LOOKS like an ordinary unreferenced-axis limit alarm but is escalate-only. Discriminator is the alarm number. Lowest prior; guardrail=true."
+    }
+   ],
+   "anti_pattern": "Do NOT treat a 27000/27100 'not safely referenced' as the ordinary morning JOG-REF homing \u2014 it is a Safety Integrated reference, re-established only by qualified maintenance/commissioning. Never force-clear it or suppress the SI alarm to keep running.",
+   "aliases": []
+  },
+  {
+   "id": "fm_si_motion_monitoring_violation",
+   "component_ref": "cmp_safety_integrated",
+   "title": "Safety Integrated: safe-motion limit exceeded (SOS / safe standstill / safe velocity / safe end position) \u2014 escalate, never override",
+   "guardrail": true,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_safety_integrated",
+      "safe_limit_exceeded"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "stopped"
+     ]
+    ],
+    "observations": [
+     "27xxx alarm says a safe limit was exceeded: safe standstill tolerance, safe velocity, safe end position, or a safe-operational-stop (SOS) NCK/drive difference",
+     "The drive has tripped a safe reaction; the move that exceeded the safe envelope is the thing to investigate",
+     "Operators record the number and call maintenance \u2014 never widen a safe limit"
+    ],
+    "alarm_codes": [
+     "27010",
+     "27011",
+     "27012",
+     "27013",
+     "27101",
+     "27102"
+    ],
+    "operator_phrases": [
+     "safe speed / safe standstill thing",
+     "27-something, it moved when it shouldn't have",
+     "safe limit exceeded",
+     "an SOS alarm"
+    ],
+    "operational_context": {
+     "operation": "setup/handling with a safe function active, or a safe-stop condition during motion",
+     "machine_mode": "any",
+     "stopped_phase": "si_motion_monitor"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_si_safe_limit_exceeded",
+     "mechanism": "A Safety Integrated motion monitor detected the axis outside its safe envelope: safe standstill tolerance exceeded (27010), safe velocity exceeded (27011), safe end position exceeded (27012), safe acceleration monitoring exceeded (27013), or an NCK\u2194drive difference in safe-operational-stop / safe-velocity (27101/27102). The cause is a genuine deviation from the parameterized safe behaviour (mechanics, parameterization, or a real over-travel/over-speed) \u2014 diagnosed by qualified maintenance. The operator never widens a safe limit or suppresses the monitor.",
+     "seed_prior": 1,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "maintenance",
+     "confirm_checks": [
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_escalate_safety"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. No operator named these; carried because the manuals (840Dsl_alarms_diagnostics_2019: 27010 'tolerance for safe standstill exceeded', 27011 'safe velocity exceeded', 27012 'safe end position exceeded', 27013 'Safe monitoring for acceleration exceeded', 27101/27102 SOS/safe-velocity NCK-vs-drive difference) describe the SI motion-monitoring class distinctly from the safe-stop class. Lowest prior; guardrail=true."
+    }
+   ],
+   "anti_pattern": "Never widen, raise, or disable a safe standstill / safe velocity / safe end-position limit to clear a 27010\u201327013 / 27101 / 27102 alarm. These are safety envelopes; a violation is investigated by maintenance, not relaxed.",
+   "aliases": []
+  },
+  {
+   "id": "fm_si_checksum_acceptance",
+   "component_ref": "cmp_safety_integrated",
+   "title": "Safety Integrated: SI checksum / hardware-change \u2014 confirmation & acceptance test required \u2014 escalate, never override",
+   "guardrail": true,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_safety_integrated",
+      "checksum_or_hw_change"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "stopped"
+     ]
+    ],
+    "observations": [
+     "27xxx alarm text explicitly says 'checksum error' and/or 'confirmation and acceptance test required', or 'new hardware component'",
+     "Indicates the SI safety configuration changed/diverged \u2014 a formal acceptance test (and sign-off) is required before safe operation resumes",
+     "Strictly a qualified-personnel acceptance-test event; never acknowledged-away by an operator"
+    ],
+    "alarm_codes": [
+     "27003",
+     "27032",
+     "27035",
+     "27060",
+     "27093"
+    ],
+    "operator_phrases": [
+     "checksum / acceptance test thing",
+     "27-something, wants an acceptance test",
+     "says new hardware, confirm and test",
+     "the safety needs re-accepting"
+    ],
+    "operational_context": {
+     "operation": "after a parameter/firmware/hardware change to the drive or SI configuration",
+     "machine_mode": "any",
+     "stopped_phase": "si_checksum_acceptance"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_si_checksum_acceptance",
+     "mechanism": "The Safety Integrated configuration changed or its checksum no longer matches the accepted reference: 27003 'Checksum error found', 27032 'checksum error of safe monitoring. Confirmation and acceptance test required', 27035 'new hardware component, confirmation and functional test required', 27060 'Drive assignment checksum error. Confirmation and acceptance test required', 27093 'Checksum error NCK-SPL'. Resolution is a formal SI confirmation + acceptance test by qualified personnel (and AS9100 documented sign-off) \u2014 never an operator acknowledgement.",
+     "seed_prior": 1,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "maintenance",
+     "confirm_checks": [
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_escalate_safety"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. No operator named these; carried because the manuals (840Dsl_alarms_diagnostics_2019) describe an SI checksum / hardware-change / acceptance-test class distinct from the run-time safe-stop and motion-monitoring classes. Lowest prior; guardrail=true. These specifically require a documented acceptance test, which is AS9100-relevant."
+    }
+   ],
+   "anti_pattern": "Never 'acknowledge away' or force-clear a 27003/27032/27035/27060/27093 SI checksum / hardware-change alarm. These require a formal Safety Integrated acceptance test and sign-off by qualified personnel; an operator clear is never the answer.",
+   "aliases": []
+  },
+  {
+   "id": "fm_oem_magazine_fault",
+   "component_ref": "cmp_tool_changer",
+   "title": "OEM builder-band (7xxxxx) tool-changer fault \u2014 defer to DMG MORI",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_tool_changer",
+      "abort"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "stopped"
+     ]
+    ],
+    "observations": [
+     "Tool change aborts mid-cycle; gripper/arm did not retract",
+     "A 'big-number' alarm in the 700,000 range \u2014 not the normal Siemens kind",
+     "Sometimes the OEM text mentions a door or a filter; operators record the number and call maintenance"
+    ],
+    "alarm_codes": [
+     "<7xxxxx \u2014 DMG MORI builder band; meaning machine-specific; defer to DMG MORI docs / on-control text>"
+    ],
+    "operator_phrases": [
+     "the arm didn't retract",
+     "seven-hundred-thousand-something",
+     "big-number alarm, not the normal Siemens kind",
+     "I write the number down and call maintenance"
+    ],
+    "operational_context": {
+     "operation": "tool change",
+     "machine_mode": "AUTO",
+     "stopped_phase": "tool_change_abort"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_oem_builder_alarm",
+     "mechanism": "A DMG MORI machine-builder PLC user alarm (700000-799999 band) \u2014 its meaning is NOT in Siemens documentation. Number-to-cause mapping is DMG MORI's to define. Read back the on-control OEM text and the visible clear/cancel symbol (those are trustworthy), record the number, and defer; never guess a cause or clearing action.",
+     "seed_prior": 4,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "maintenance",
+     "confirm_checks": [
+      "chk_oem_alarm_text",
+      "chk_alarm_number"
+     ],
+     "procedures": [
+      "proc_defer_oem_alarm"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Joe: a couple times a quarter, last late Apr/early May, and the single biggest TIME cost (waits on maintenance, up to most of a shift) even though not the most frequent. Mid prior reflecting moderate frequency + high downtime weight."
+    }
+   ],
+   "anti_pattern": "Never invent a cause, parameter meaning, or clearing action for a 7xxxxx number; never clear an unknown changer alarm with the spindle right there. The number maps to DMG MORI's docs only.",
+   "aliases": []
+  },
+  {
+   "id": "fm_coolant_concentration_low",
+   "component_ref": "cmp_coolant_flood",
+   "title": "Coolant off-mix / low concentration \u2014 finish degrades and tools die (no alarm)",
+   "guardrail": false,
+   "case_count": 0,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_coolant_flood",
+      "off_mix"
+     ],
+     [
+      "cmp_machine_dmc80fd",
+      "running"
+     ]
+    ],
+    "observations": [
+     "No alarm \u2014 machine is mechanically happy",
+     "Surface finish degrades through a long titanium run; tools wear/die fast (swapping too often)",
+     "Coolant smells off; rusty films starting on the worktable/fixture area"
+    ],
+    "alarm_codes": [],
+    "operator_phrases": [
+     "finish is going off and tools die fast",
+     "the coolant smells a bit off",
+     "rusty films on the table",
+     "coolant gets weak, watered down"
+    ],
+    "operational_context": {
+     "operation": "long titanium run (e.g. long bracket run)",
+     "cut_type": "finishing / roughing on titanium",
+     "machine_mode": "AUTO",
+     "stopped_phase": "running_no_stop"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_coolant_low_concentration",
+     "mechanism": "Coolant concentration has drifted below the product PDS band (top-ups with water, evaporation, tramp oil). Weak lubrication/heat control on low-thermal-conductivity titanium \u2192 edge burn, work-hardening, short tool life, poor finish, corrosion films. Soft failure with no alarm.",
+     "seed_prior": 5,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L1",
+     "escalate_to": "none",
+     "confirm_checks": [
+      "chk_coolant_refractometer",
+      "chk_coolant_condition"
+     ],
+     "procedures": [
+      "proc_check_correct_coolant_concentration"
+     ],
+     "$seed_prior_basis": "PROVISIONAL \u2014 not SME-elicited. Alex's #2, a few times/month on long runs, last 2026-06-09 (rust film). 'Sneaky' but machine keeps running. Mid prior \u2014 frequent but low-severity-per-event; the source seed row ir_2026_0611_alex_02."
+    }
+   ],
+   "anti_pattern": "Do not 'just add more coolant' / top up blindly without measuring on the refractometer (Alex's unmeasured top-up \u2014 captured, not endorsed); do not chase one reading; do not run titanium cuts dry; do not add water to concentrate (use 'oil in last', pre-mixed).",
+   "aliases": [
+    "coolant weak",
+    "watered-down coolant",
+    "off-mix coolant",
+    "milky coolant"
+   ]
+  },
+  {
+   "id": "fm_chatter",
+   "component_ref": "cmp_spindle",
+   "title": "Chatter / vibration - poor surface finish (no alarm)",
+   "guardrail": false,
+   "case_count": 0,
+   "aliases": [
+    "chatter",
+    "vibration marks",
+    "singing",
+    "humming cut",
+    "rough finish"
+   ],
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_spindle",
+      "running"
+     ]
+    ],
+    "observations": [
+     "No alarm - machine is mechanically fine",
+     "Poor / rough surface finish, visible chatter marks",
+     "Audible chatter or vibration during the cut"
+    ],
+    "alarm_codes": [],
+    "operator_phrases": [
+     "bad finish",
+     "surface looks rough",
+     "it's chattering",
+     "vibration on the cut",
+     "finish has gone rough"
+    ],
+    "operational_context": {
+     "operation": "finishing pass",
+     "cut_type": "finishing",
+     "machine_mode": "AUTO",
+     "stopped_phase": "running_no_stop"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_worn_insert",
+     "mechanism": "Worn or chipped cutting edge raises cutting forces and excites vibration; finish degrades, chatter marks appear. No alarm.",
+     "seed_prior": 7,
+     "case_count": 0,
+     "last_seen": null,
+     "action_level": "L1",
+     "escalate_to": "none",
+     "confirm_checks": [
+      "chk_insert_edge"
+     ],
+     "procedures": [
+      "proc_swap_insert"
+     ],
+     "$seed_prior_basis": "PROVISIONAL - demo mode; worn insert is the usual first suspect for chatter."
+    }
+   ],
+   "anti_pattern": "Do not just slow the feed/speed to 'mask' chatter without checking the insert - a worn edge keeps degrading and can break."
+  }
+ ],
+ "checks": [
+  {
+   "id": "chk_alarm_number",
+   "ask": "Read me the alarm NUMBER on the Diagnosis screen exactly (digits, including any leading band), not just the words.",
+   "observation_type": "control_panel",
+   "answers": [
+    "10620/10621 or 10720/10721 (software limit)",
+    "10730/10731 (working area)",
+    "10203 (no reference)",
+    "10700-10704 (protection zone)",
+    "3000/3001 or 27020-27024 or 27090-27092 or 27001 (safe-stop / E-stop)",
+    "27000/27100 (SI not safely referenced)",
+    "27010-27013 or 27101/27102 (SI safe-motion limit)",
+    "27003/27032/27035/27060/27093 (SI checksum / acceptance test)",
+    "7xxxxx (OEM/DMG MORI)",
+    "other / unsure"
+   ],
+   "cost": {
+    "time_min": 1,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_unreferenced_axis": "10203 (no reference)",
+    "cause_wrong_work_offset": "10620/10621 or 10720/10721 (software limit)",
+    "cause_program_path_through_zone": "10700-10704 (protection zone)",
+    "cause_si_safe_stop": "3000/3001 or 27020-27024 or 27090-27092 or 27001 (safe-stop / E-stop)",
+    "cause_si_not_safely_referenced": "27000/27100 (SI not safely referenced)",
+    "cause_si_safe_limit_exceeded": "27010-27013 or 27101/27102 (SI safe-motion limit)",
+    "cause_si_checksum_acceptance": "27003/27032/27035/27060/27093 (SI checksum / acceptance test)",
+    "cause_oem_builder_alarm": "7xxxxx (OEM/DMG MORI)"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_reference_symbols",
+   "ask": "On the position page, does every axis show its reference/homed symbol, or is the little symbol missing on one or more slides?",
+   "observation_type": "control_panel",
+   "answers": [
+    "all axes referenced",
+    "one or more missing the symbol"
+   ],
+   "cost": {
+    "time_min": 2,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_unreferenced_axis": "one or more missing the symbol"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_g54_vs_traveler",
+   "ask": "On the Work Offset screen, does the ACTIVE work offset (e.g. G54) part-zero match the value/datum on the traveler/setup sheet? (Work offset = where the part is, NOT tool length.)",
+   "observation_type": "control_panel",
+   "answers": [
+    "matches the sheet",
+    "does not match / looks bumped or zeroed"
+   ],
+   "cost": {
+    "time_min": 3,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_wrong_work_offset": "does not match / looks bumped or zeroed"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_library_vs_traveler",
+   "ask": "Read the tool-library/recipe name on the screen and the library name on the traveler character-for-character (case-sensitive, watch the revision suffix). Do they match exactly?",
+   "observation_type": "control_panel",
+   "answers": [
+    "names match exactly",
+    "names differ (e.g. revision suffix)"
+   ],
+   "cost": {
+    "time_min": 3,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_wrong_library_fixture_rev": "names differ (e.g. revision suffix)",
+    "cause_transform_not_active_program": "names match exactly",
+    "cause_wrong_library_selected": "names differ (e.g. revision suffix)"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_fixture_rev_tag",
+   "ask": "Does the revision stamped/tagged on the physical fixture match the fixture revision on the traveler?",
+   "observation_type": "visual",
+   "answers": [
+    "fixture rev matches traveler",
+    "fixture rev differs from traveler"
+   ],
+   "cost": {
+    "time_min": 3,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_wrong_library_fixture_rev": "fixture rev differs from traveler"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_tool_pocket_vs_sheet",
+   "ask": "On the Magazine list, is the called tool sitting in the pocket the setup sheet assigns it (e.g. T42 in pocket 12)?",
+   "observation_type": "control_panel",
+   "answers": [
+    "in the assigned pocket",
+    "in the wrong pocket"
+   ],
+   "cost": {
+    "time_min": 3,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_tool_wrong_pocket": "in the wrong pocket"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_tool_length_present",
+   "ask": "On the Tool list / Tool Offset screen, is a length/diameter value actually present for the called tool, or is it blank/zero?",
+   "observation_type": "control_panel",
+   "answers": [
+    "length/diameter present",
+    "blank or zero"
+   ],
+   "cost": {
+    "time_min": 2,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_tool_length_missing_or_wrong": "blank or zero",
+    "cause_tool_wrong_pocket": "length/diameter present"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_tool_length_vs_preset",
+   "ask": "Compare the tool's length/diameter on the Tool Offset screen against the preset/touch-off sheet for THIS tool (especially after a regrind). Do they agree?",
+   "observation_type": "control_panel",
+   "answers": [
+    "matches the preset sheet",
+    "does not match the preset sheet"
+   ],
+   "cost": {
+    "time_min": 4,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_tool_length_missing_or_wrong": "does not match the preset sheet"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_oem_alarm_text",
+   "ask": "Read back the on-screen OEM alarm TEXT and the visible clear/cancel symbol exactly as shown (do not interpret the number).",
+   "observation_type": "control_panel",
+   "answers": [
+    "text + clear symbol recorded",
+    "screen unreadable / no text"
+   ],
+   "cost": {
+    "time_min": 2,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_oem_builder_alarm": "text + clear symbol recorded"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_coolant_refractometer",
+   "ask": "Using the refractometer (zeroed on clean water), sample from the delivery nozzle and read Brix; multiply by the product PDS factor. Is the concentration within the PDS band?",
+   "observation_type": "visual",
+   "answers": [
+    "within PDS band",
+    "below band (too low)",
+    "above band (too high)"
+   ],
+   "cost": {
+    "time_min": 5,
+    "skill": "operator",
+    "machine_state": "running_or_idle"
+   },
+   "safety_gate": {
+    "type": "caution",
+    "require": "nitrile gloves + eye protection; sample at nozzle not stagnant sump"
+   },
+   "discriminates": {
+    "cause_coolant_low_concentration": "below band (too low)"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_coolant_condition",
+   "ask": "Look/smell the coolant: clean smell, no thick tramp-oil layer/scum/foam? Any rust films on parts/ways/worktable?",
+   "observation_type": "visual",
+   "answers": [
+    "clean, no films",
+    "off smell / tramp oil / rust films"
+   ],
+   "cost": {
+    "time_min": 2,
+    "skill": "operator",
+    "machine_state": "running_or_idle"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_coolant_low_concentration": "off smell / tramp oil / rust films"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_insert_edge",
+   "ask": "Pull the insert and look at the cutting edge - is it chipped/worn, or still sharp?",
+   "observation_type": "visual",
+   "answers": [
+    "chipped or worn",
+    "sharp / fine"
+   ],
+   "cost": {
+    "time_min": 2,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_worn_insert": "chipped or worn"
+   },
+   "source_ref": null
+  }
+ ],
+ "procedures": [
+  {
+   "id": "proc_reference_axes",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_limit_at_cycle_start",
+    "causes": [
+     "cause_unreferenced_axis"
+    ]
+   },
+   "preliminary": {
+    "safety": [
+     {
+      "type": "machine_state",
+      "require": "work zone clear; know head/table/tool position before any motion",
+      "ref": "warn_known_position"
+     }
+    ],
+    "tools": [],
+    "skill": "operator",
+    "est_min": 10
+   },
+   "steps": [
+    "stp_confirm_zone_clear",
+    "stp_select_ref_mode",
+    "stp_reference_axes",
+    "stp_verify_ref_symbols"
+   ],
+   "closeout": {
+    "verify": "All axes show the reference symbol; program runs past cycle start without the limit/no-reference alarm.",
+    "on_verify_fail": "If it still alarms with axes referenced, check the work offset (proc_verify_work_offset) or escalate to Denver/programmer.",
+    "restore": [
+     "return to AUTO",
+     "reload job"
+    ],
+    "capture": [
+     "alarm number seen",
+     "which axes were unreferenced"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_verify_work_offset",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_limit_at_cycle_start",
+    "causes": [
+     "cause_wrong_work_offset"
+    ]
+   },
+   "preliminary": {
+    "safety": [
+     {
+      "type": "caution",
+      "require": "do NOT widen the software limit or eyeball/nudge the offset to make the move reach",
+      "ref": "warn_no_widen_limit"
+     }
+    ],
+    "tools": [
+     "traveler/setup sheet"
+    ],
+    "skill": "operator",
+    "est_min": 5
+   },
+   "steps": [
+    "stp_open_work_offset",
+    "stp_compare_g54_sheet"
+   ],
+   "closeout": {
+    "verify": "Active G54 part zero matches the setup sheet datum.",
+    "on_verify_fail": "If G54 matches the sheet but it still alarms, it may be the program \u2014 escalate to programmer (proc_escalate_offset_programmer). Do not reset-and-rerun.",
+    "restore": [],
+    "capture": [
+     "G54 value-vs-sheet result"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_escalate_offset_programmer",
+   "kind": "escalate",
+   "resolves": {
+    "failure_mode": "fm_limit_at_cycle_start",
+    "causes": [
+     "cause_wrong_work_offset"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "Escalate to programmer (Denver): G54 matches the sheet but the limit alarm persists \u2014 possible program-side offset/frame issue. Operator does not edit the program.",
+    "escalate_to": "programmer",
+    "capture_fields": [
+     "alarm number",
+     "active G54 vs sheet",
+     "program name",
+     "operation"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_reload_correct_library",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_5axis_orientation_mismatch",
+    "causes": [
+     "cause_wrong_library_fixture_rev",
+     "cause_wrong_library_selected"
+    ]
+   },
+   "preliminary": {
+    "safety": [
+     {
+      "type": "caution",
+      "require": "do NOT grab the closest-looking library; identity (name) check only, no content/tool-data edits",
+      "ref": "warn_no_closest_library"
+     }
+    ],
+    "tools": [
+     "traveler/setup sheet"
+    ],
+    "skill": "operator",
+    "est_min": 15
+   },
+   "steps": [
+    "stp_read_traveler_library",
+    "stp_load_correct_library",
+    "stp_proveout_slow"
+   ],
+   "closeout": {
+    "verify": "Loaded library name matches the traveler (incl. revision suffix); program proves out past the orientation block.",
+    "on_verify_fail": "If names match and it still faults at the orientation block, escalate to programmer (proc_escalate_orientation_programmer).",
+    "restore": [
+     "return to start of program / sanctioned restart point"
+    ],
+    "capture": [
+     "library name loaded",
+     "fixture rev",
+     "fault block (e.g. N490)"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_escalate_orientation_programmer",
+   "kind": "escalate",
+   "resolves": {
+    "failure_mode": "fm_5axis_orientation_mismatch",
+    "causes": [
+     "cause_transform_not_active_program"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "Escalate to programmer (Denver): library name matches the traveler but the 5-axis orientation block still faults \u2014 possible TRAORI/CYCLE800 transform-not-active or program issue. Operator never toggles TRAORI or edits transformation data.",
+    "escalate_to": "programmer",
+    "capture_fields": [
+     "alarm number/text",
+     "fault block",
+     "library name",
+     "fixture rev",
+     "operation"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_match_magazine_to_sheet",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_wrong_tool_data",
+    "causes": [
+     "cause_tool_wrong_pocket"
+    ]
+   },
+   "preliminary": {
+    "safety": [
+     {
+      "type": "machine_state",
+      "require": "spindle stopped; tool changer at rest before handling pockets",
+      "ref": "warn_known_position"
+     }
+    ],
+    "tools": [
+     "setup sheet"
+    ],
+    "skill": "operator",
+    "est_min": 5
+   },
+   "steps": [
+    "stp_compare_pocket_sheet",
+    "stp_return_tool_to_pocket"
+   ],
+   "closeout": {
+    "verify": "Called tool sits in the setup-sheet pocket; program resolves the tool and runs.",
+    "on_verify_fail": "If the tool is truly missing or its data is blank, do not improvise \u2014 escalate (proc_escalate_tool_data).",
+    "restore": [],
+    "capture": [
+     "tool number",
+     "pocket as-found vs sheet"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_escalate_tool_data",
+   "kind": "escalate",
+   "resolves": {
+    "failure_mode": "fm_wrong_tool_data",
+    "causes": [
+     "cause_tool_length_missing_or_wrong"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "Escalate to programmer (Denver): tool length/diameter is blank, wrong, or unverifiable (e.g. after a regrind). Operator must NOT invent a value; Denver measures and sets the data.",
+    "escalate_to": "programmer",
+    "capture_fields": [
+     "tool number",
+     "as-found data (blank/zero/value)",
+     "preset sheet value if any",
+     "regrind?"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_escalate_library_unresolved",
+   "kind": "escalate",
+   "resolves": {
+    "failure_mode": "fm_wrong_tool_library_loaded",
+    "causes": [
+     "cause_wrong_library_selected"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "Escalate to programmer (Denver): library name matches the traveler but the named tool still won't resolve (12550), or option-related wording appears. Operator does not create/edit tool entries.",
+    "escalate_to": "programmer",
+    "capture_fields": [
+     "alarm number/text",
+     "active library name",
+     "tool name not resolving",
+     "traveler library name"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_escalate_zone",
+   "kind": "escalate",
+   "resolves": {
+    "failure_mode": "fm_protection_zone_violation",
+    "causes": [
+     "cause_program_path_through_zone"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "Escalate to programmer/maintenance: a protection/collision-zone alarm (10700-10704) \u2014 operator never overrides the zone. Program/setup is reviewed, retracted, and corrected by the owner.",
+    "escalate_to": "programmer",
+    "capture_fields": [
+     "alarm number",
+     "block",
+     "operation",
+     "machine mode"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_escalate_safety",
+   "kind": "escalate",
+   "resolves": {
+    "failure_mode": null,
+    "causes": [
+     "cause_si_safe_stop",
+     "cause_si_not_safely_referenced",
+     "cause_si_safe_limit_exceeded",
+     "cause_si_checksum_acceptance"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "STOP and escalate to maintenance: a Safety Integrated event \u2014 a 27xxx alarm (safe-stop / STOP A\u2013E, safe-referencing, safe-motion limit, or SI checksum/acceptance-test) or a 30xx E-stop. Never override, suppress, force-reset, widen a safe limit, or 'acknowledge away' an acceptance-test alarm. Record the number and the event; investigate, do not clear-and-rerun. SI checksum / hardware-change alarms require a documented acceptance test by qualified personnel (AS9100).",
+    "escalate_to": "maintenance",
+    "capture_fields": [
+     "alarm number/text",
+     "SI sub-class (safe-stop / not-referenced / safe-motion / checksum-acceptance)",
+     "preceding event (e.g. door, power-up, hardware/parameter change)",
+     "machine state at stop"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_defer_oem_alarm",
+   "kind": "defer",
+   "resolves": {
+    "failure_mode": "fm_oem_magazine_fault",
+    "causes": [
+     "cause_oem_builder_alarm"
+    ]
+   },
+   "steps": [],
+   "handoff": {
+    "action": "DEFER to DMG MORI: a 7xxxxx builder-band alarm has no Siemens meaning. Read back the on-control OEM text + clear symbol, record the number, and route to maintenance/DMG MORI docs. Never guess a cause or clearing action; never clear an unknown changer alarm with the spindle present.",
+    "escalate_to": "maintenance",
+    "capture_fields": [
+     "7xxxxx number (as shown)",
+     "OEM alarm text",
+     "clear/cancel symbol",
+     "what the changer was doing (e.g. arm didn't retract)"
+    ]
+   },
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_check_correct_coolant_concentration",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_coolant_concentration_low",
+    "causes": [
+     "cause_coolant_low_concentration"
+    ]
+   },
+   "preliminary": {
+    "safety": [
+     {
+      "type": "caution",
+      "require": "nitrile gloves + eye protection; do not add water to concentrate (oil-in-last); do not add biocide without authorization",
+      "ref": "warn_coolant_ppe"
+     }
+    ],
+    "tools": [
+     "refractometer",
+     "clean DI/RO water",
+     "pre-mixed coolant at target %",
+     "coolant log"
+    ],
+    "skill": "operator",
+    "est_min": 15
+   },
+   "steps": [
+    "stp_zero_refractometer",
+    "stp_sample_and_read",
+    "stp_correct_concentration",
+    "stp_log_coolant"
+   ],
+   "closeout": {
+    "verify": "Re-measured concentration sits within the product PDS band after circulation; finish/films improving.",
+    "on_verify_fail": "If concentration is in-band but finish/tool-life is still off, or smell/pH is sour, flag to Denver/lead \u2014 do not dose biocide.",
+    "restore": [],
+    "capture": [
+     "Brix reading",
+     "computed concentration %",
+     "top-up amount",
+     "log entry"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  },
+  {
+   "id": "proc_swap_insert",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_chatter",
+    "causes": [
+     "cause_worn_insert"
+    ]
+   },
+   "preliminary": {
+    "safety": [],
+    "tools": [
+     "fresh insert",
+     "torx key"
+    ],
+    "skill": "operator",
+    "est_min": 5
+   },
+   "steps": [
+    "stp_swap_insert"
+   ],
+   "closeout": {
+    "verify": "Fresh insert fitted; a test pass gives a clean finish with no chatter.",
+    "on_verify_fail": "reopen_diagnosis",
+    "restore": [
+     "return to AUTO"
+    ],
+    "capture": [
+     "which insert",
+     "finish result"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "op_vet",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
+  }
+ ],
+ "steps": [
+  {
+   "id": "stp_confirm_zone_clear",
+   "action": "Confirm the work zone is clear and you know where the tool, spindle and B/C head/table are before any motion.",
+   "component_ref": "cmp_machine_dmc80fd",
+   "warnings_before": [
+    "warn_known_position"
+   ],
+   "media": null,
+   "expected_result": "Operator confirms a clear zone and known machine position.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_select_ref_mode",
+   "action": "Select JOG / REF POINT mode.",
+   "component_ref": "cmp_operator_panel",
+   "media": null,
+   "expected_result": "Control is in REF mode, ready to home axes.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_reference_axes",
+   "action": "Reference (home) each axis that is missing its symbol, traversing toward the reference point.",
+   "component_ref": "cmp_linear_axes",
+   "warnings_before": [
+    "warn_known_position"
+   ],
+   "media": null,
+   "expected_result": "Each axis reaches its reference point; smooth even travel, no following-error alarm.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_verify_ref_symbols",
+   "action": "Confirm every axis now shows its reference symbol on the position page.",
+   "component_ref": "cmp_offset_screens",
+   "media": null,
+   "expected_result": "All axes referenced.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_open_work_offset",
+   "action": "Open the Work Offset (zero offset) screen and identify the ACTIVE offset (e.g. G54).",
+   "component_ref": "cmp_offset_screens",
+   "media": null,
+   "expected_result": "Active work offset and its part-zero values are displayed.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_compare_g54_sheet",
+   "action": "Compare the active G54 part zero against the traveler/setup-sheet datum (work offset = where the part is, not tool length). Do not nudge or widen anything.",
+   "component_ref": "cmp_offset_screens",
+   "warnings_before": [
+    "warn_no_widen_limit"
+   ],
+   "media": null,
+   "expected_result": "Either G54 matches the sheet (escalate if still alarming) or a clear mismatch is found.",
+   "complexity": "low",
+   "skippable": false,
+   "on_deviation": {
+    "policy": "stop_and_escalate",
+    "branch_ref": "proc_escalate_offset_programmer",
+    "safe_state": "machine stopped, alarm uncleared",
+    "capture": true
+   }
+  },
+  {
+   "id": "stp_read_traveler_library",
+   "action": "Read the program name, tool-library name, and fixture ID+revision verbatim from the traveler, then read the active program and loaded library name on the control. Compare character-for-character (case-sensitive, watch the revision suffix and look-alikes 0/O, 1/l).",
+   "component_ref": "cmp_tool_library",
+   "media": null,
+   "expected_result": "A definite match or mismatch of names is established.",
+   "complexity": "medium",
+   "skippable": false
+  },
+  {
+   "id": "stp_load_correct_library",
+   "action": "If the names do not agree, load the library named on the traveler for this fixture revision. Do NOT pick the closest-looking one.",
+   "component_ref": "cmp_tool_library",
+   "warnings_before": [
+    "warn_no_closest_library"
+   ],
+   "media": null,
+   "expected_result": "The library named on the traveler is the active TO unit.",
+   "complexity": "medium",
+   "skippable": false,
+   "on_deviation": {
+    "policy": "stop_and_escalate",
+    "branch_ref": "proc_escalate_orientation_programmer",
+    "safe_state": "machine stopped",
+    "capture": true
+   }
+  },
+  {
+   "id": "stp_proveout_slow",
+   "action": "Prove out from a sanctioned restart point in single block, feed/rapid override down with a hand on feed-hold; do not block-search into the middle of a transformed move.",
+   "component_ref": "cmp_machine_dmc80fd",
+   "warnings_before": [
+    "warn_no_blocksearch_transform"
+   ],
+   "media": null,
+   "expected_result": "Program passes the previously faulting orientation block under controlled feed.",
+   "complexity": "high",
+   "skippable": false
+  },
+  {
+   "id": "stp_compare_pocket_sheet",
+   "action": "On the Magazine list, find the called tool and compare its pocket against the setup-sheet assignment.",
+   "component_ref": "cmp_tool_changer",
+   "media": null,
+   "expected_result": "Tool's actual pocket vs assigned pocket is known.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_return_tool_to_pocket",
+   "action": "If the tool is in the wrong pocket, place it in the setup-sheet pocket (spindle stopped, changer at rest).",
+   "component_ref": "cmp_tool_changer",
+   "warnings_before": [
+    "warn_known_position"
+   ],
+   "media": null,
+   "expected_result": "Called tool is in its assigned pocket; the program resolves it.",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_zero_refractometer",
+   "action": "Zero the handheld refractometer on clean water (ideally the same DI/RO water used to mix coolant); wipe the prism dry.",
+   "component_ref": "cmp_coolant_flood",
+   "warnings_before": [
+    "warn_coolant_ppe"
+   ],
+   "media": null,
+   "expected_result": "Refractometer reads zero on clean water (calibrated).",
+   "complexity": "low",
+   "skippable": false
+  },
+  {
+   "id": "stp_sample_and_read",
+   "action": "Sample coolant from the delivery nozzle (not a stagnant sump corner), read Brix at the light/dark boundary, multiply by the product PDS factor to get concentration %.",
+   "component_ref": "cmp_coolant_flood",
+   "media": null,
+   "expected_result": "A concentration % value, compared against the PDS band. A blurry boundary means unstable emulsion/tramp oil \u2014 clean up and re-sample.",
+   "complexity": "medium",
+   "skippable": false
+  },
+  {
+   "id": "stp_correct_concentration",
+   "action": "If too low, add pre-mixed coolant (richer than target) following oil-in-last; if too high, add DI/RO water gradually. Make small changes; circulate before re-measuring.",
+   "component_ref": "cmp_coolant_flood",
+   "warnings_before": [
+    "warn_coolant_ppe"
+   ],
+   "media": null,
+   "expected_result": "Concentration moves toward the PDS band; re-measure after circulation rather than chasing one reading.",
+   "complexity": "medium",
+   "skippable": false
+  },
+  {
+   "id": "stp_log_coolant",
+   "action": "Record the concentration reading and top-up amount in the coolant log.",
+   "component_ref": "cmp_coolant_flood",
+   "media": null,
+   "expected_result": "Coolant log updated (the trend matters more than any single reading).",
+   "complexity": "low",
+   "skippable": true
+  },
+  {
+   "id": "stp_swap_insert",
+   "action": "Swap to a fresh insert (same grade/geometry), seat it properly, then run a test pass at the same feed and speed.",
+   "component_ref": "cmp_spindle",
+   "warnings_before": [
+    "Spindle stopped and safe before reaching in"
+   ],
+   "media": null,
+   "expected_result": "Clean finish, no chatter marks",
+   "complexity": "low",
+   "skippable": false
+  }
+ ],
+ "warnings": [
+  {
+   "id": "warn_known_position",
+   "text": "Never jog blind or cycle-start without knowing tool, spindle and 5-axis (B/C) positions and that the work zone is clear \u2014 especially after a stop, block-search, or offset change."
+  },
+  {
+   "id": "warn_no_widen_limit",
+   "text": "Never widen a software/overtravel limit, and never eyeball/nudge an offset to make a move reach. A limit hit is a real position fault / machine-protection boundary, not a setting to relax (AS9100 change control)."
+  },
+  {
+   "id": "warn_no_closest_library",
+   "text": "Never load the closest-looking tool library/recipe to keep moving. A name mismatch (case-sensitive, revision suffix) is a revision-control question for the setter/programmer/quality \u2014 not an operator edit. On titanium this is how a high-value forging gets scrapped."
+  },
+  {
+   "id": "warn_no_blocksearch_transform",
+   "text": "Do not block-search into the middle of a 5-axis/transformed move to skip a stop \u2014 the assumed transformation/frame and rotary angles may not be re-established and the tool can plunge into the part or fixture."
+  },
+  {
+   "id": "warn_no_invent_tool_data",
+   "text": "Never hand-type or make up a tool length/diameter to clear a stop \u2014 it is the fastest crash in the building. If the data is blank/wrong, escalate; the programmer measures and sets it."
+  },
+  {
+   "id": "warn_safety_no_override",
+   "text": "Never override, suppress, or force-reset a Safety Integrated / 27xxx safe stop, and never bypass a door interlock or treat E-stop/RESET/mode-switch as a lockout. A safe stop is investigated, not cleared."
+  },
+  {
+   "id": "warn_oem_defer",
+   "text": "Never invent a cause or clearing action for a 7xxxxx DMG MORI builder-band alarm; read back the on-control OEM text + clear symbol and defer to DMG MORI docs/maintenance."
+  },
+  {
+   "id": "warn_coolant_ppe",
+   "text": "Wear nitrile gloves + eye protection with coolant; add concentrate to water (oil-in-last), never water to concentrate; never dose biocide without authorization; never run titanium cuts dry."
+  }
+ ],
+ "never_do": [
+  "single-block",
+  "don't single-block",
+  "skip the dry run",
+  "skip proveout",
+  "skip the proveout",
+  "skip dry-run",
+  "bump the offset",
+  "bump a work offset",
+  "nudge the offset",
+  "eyeball the offset",
+  "eyeball a offset",
+  "eyeball an offset",
+  "reset and re-run",
+  "reset and rerun",
+  "reset and run it again",
+  "hit reset and re-run",
+  "just reset and",
+  "top up coolant by feel",
+  "coolant by feel",
+  "by feel",
+  "closest library",
+  "closest-looking",
+  "grab the closest",
+  "grab a library",
+  "widen the limit",
+  "widen the soft limit",
+  "widen the software limit",
+  "back off the limit",
+  "back off the coolant",
+  "change the angle and run",
+  "tool length i think",
+  "type in a tool length",
+  "a length i think is right",
+  "acknowledge the safety stop",
+  "bypass the safety",
+  "ignore the safety"
+ ]
+}

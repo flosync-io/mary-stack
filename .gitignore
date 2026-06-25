@@ -7,3 +7,4 @@
 
 # generated review/session html
 distill/out/
+.DS_Store
