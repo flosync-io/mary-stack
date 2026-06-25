@@ -233,6 +233,37 @@ def status_never_regresses_to_diagnosing(m, KJ):
         assert not (advanced and st == "diagnosing"), statuses
 
 
+@test
+def other_kind_does_not_poison_reported(m, KJ):
+    s = Session(m, KJ)
+    r = s.turn("other", "hi")
+    assert r["move"] == "INTAKE", ("greeting should re-prompt, not SANITY", r["move"])
+    assert not r["case"].get("reported"), ("reported must stay empty after greeting", r["case"].get("reported"))
+    # second turn: real symptom
+    r2 = s.turn("symptom", "coolant smells off and finish has degraded")
+    assert r2["move"] == "SANITY", ("real symptom should trigger SANITY", r2["move"])
+    assert r2["case"].get("reported"), ("reported must be set after real symptom", r2["case"].get("reported"))
+
+
+@test
+def other_mid_flow_reasks_does_not_advance(m, KJ):
+    s = Session(m, KJ)
+    # drive to VERIFY (2 resolve steps then verify question)
+    s.turn("symptom", "cycle start halt, alarm 10620")
+    s.turn("check_answer", "nothing changed")
+    s.turn("check_answer", "10620 software limit")  # cause matched -> RESOLVE step 1
+    s.turn("confirmation", "done")                  # step 2
+    s.turn("confirmation", "done")                  # -> VERIFY question
+    # now in VERIFY — send unintelligible input
+    r = s.turn("other", "hmm not sure what you mean")
+    assert r["move"] == "ASK_CHECK", ("other at VERIFY must re-ask, not advance", r["move"])
+    assert r["case"].get("status") != "resolved", ("other must not resolve the case", r["case"].get("status"))
+    assert s.cv["stage"] == "VERIFY", ("stage must remain VERIFY", s.cv["stage"])
+    # a real positive confirmation now should close it
+    r2 = s.turn("confirmation", "yep G54 matches and it runs clean")
+    assert r2["move"] == "RESOLVED", r2["move"]
+
+
 def main():
     m, KJ = load_engine()
     fails = 0
