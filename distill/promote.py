@@ -69,6 +69,12 @@ def build_change(fp, rt, fm_index, knowledge):
     # conversation_id = filename since id is null in real files (ADR-0001)
     conv = rt.get("id") or os.path.splitext(os.path.basename(fp))[0]
     op, target = classify(rt, fm_index)
+
+    # idempotency: skip if this conv is already in the target FM's provenance
+    if op in ("enrich", "revise") and target:
+        if conv in fm_index[target].get("provenance", []):
+            return None
+
     grounding = {
         "conversation_id": conv,
         "operator_id": rt.get("operator_id", "?"),
@@ -95,7 +101,7 @@ def build_change(fp, rt, fm_index, knowledge):
     after  = json.loads(json.dumps(before))
     if conv not in after.get("provenance", []):
         after.setdefault("provenance", []).append(conv)
-    after["evidence_count"] = after.get("evidence_count", 0) + 1
+    after["evidence_count"] = len(after["provenance"])  # derived, never incremented
     if op == "revise":
         # REVISE: surface the contradiction; Denver decides the final wording
         after["resolution"] = rt.get("resolution_note", before.get("resolution", ""))
@@ -149,7 +155,9 @@ def main():
     ))
     skipped  = total - len(resolved)
 
-    changes = [build_change(fp, rt, fm_index, knowledge) for fp, rt in resolved]
+    raw      = [build_change(fp, rt, fm_index, knowledge) for fp, rt in resolved]
+    already  = sum(1 for c in raw if c is None)
+    changes  = [c for c in raw if c is not None]
 
     with open(os.path.join(a.out, "changes.json"), "w") as f:
         json.dump(changes, f, indent=2)
@@ -161,7 +169,7 @@ def main():
     counts = {}
     for c in changes: counts[c["op"]] = counts.get(c["op"], 0) + 1
     summary = ", ".join(f"{v} {k}" for k, v in counts.items()) if counts else "none"
-    print(f"{len(changes)} proposed change(s): {summary}  |  {skipped} skipped (not resolved)")
+    print(f"{len(changes)} proposed change(s): {summary}  |  {skipped} skipped (not resolved)  |  {already} already promoted")
     print(f"  out/review.html     <- open this; Denver reviews + approves")
     print(f"  out/candidate.json  <- all changes applied (reference)")
     print(f"  out/changes.json    <- the structured proposals")
