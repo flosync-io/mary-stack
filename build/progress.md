@@ -1,8 +1,7 @@
 # build — progress
 
 ## Now
-v_resolution fallback logic complete (resolution_note → reconstructed capture → ""). Vault write path fully wired.
-Next: export yml to Dify (human step); verify/create vault table migration in backend/.
+Vault write path fully wired and validated against live eval (capture string confirmed). Awaiting export to Dify and vault table migration.
 
 ## Next
 - Export updated yml to Dify (deploy gate: human imports after test pass).
