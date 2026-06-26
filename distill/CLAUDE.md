@@ -17,9 +17,13 @@ Read `BUILD-PLAN.md` before building anything here. Read ADR-0001 (`../docs/adr/
 - **`storage.py` is the single Supabase I/O module.** All reads/writes to Storage (mary-memory bucket) and the vault table go through `StorageClient`. Nothing else imports `requests` or touches Supabase directly. Use `source="bucket"` (live) or `source="local"` (file fixtures, smoke tests). `mark_promoted(conv_ids, version)` stamps vault rows after `--apply`; local mode is a no-op.
 - **`promote.py` bucket mode:** `--machine-id DMC80FD-01` (no `--knowledge`/`--runtime`) fetches sessions via `storage.list_promotable`, blobs via `storage.get_runtime`, knowledge via `storage.get_knowledge`. `--apply` writes back via `storage.put_knowledge` and calls `storage.mark_promoted`. Legacy `--knowledge`/`--runtime` flags still work (backward compat, smoke test path).
 
+- **`draft_add.py` produces ADD drafts via LLM.** `draft_add(runtime, knowledge) -> dict` is a pure function (no file I/O, no Supabase). Requires `OPENAI_API_KEY` in env. Uses `gpt-5.4`, `response_format={"type":"json_object"}`, temperature 0. `operator_phrases` seeded verbatim from `reported`/`resolution_note`; `component_ref`, `title`, `guardrail` emitted as `"TODO: human must author — do not fabricate"`. `id` and `provenance` stamped by Python, not the LLM. On parse failure after one retry, `RuntimeError(raw_text)` is raised — CLI writes `.draft.RAW.txt`. `OPENAI_API_KEY` is NOT in the repo `.env` (it lives in Dify); add it locally before running.
+
 ## Build order (leaf-first)
 1. `render.py` — done.
 2. `promote.py` — done (dry-run/--apply, deferred ADD, smoke test).
 3. ~~`review.html`~~ — replaced by stdout approach (done).
+4. `storage.py` — done.
+5. `draft_add.py` — done (blocked on OPENAI_API_KEY for live smoke).
 
 Memory: read ./progress.md and ./notes.md at task start; run update-memory at task end.
