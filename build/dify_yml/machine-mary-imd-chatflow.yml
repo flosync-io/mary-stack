@@ -1155,7 +1155,7 @@ workflow:
           v_resolution:
             type: string
             children: null
-        code: "import json\ndef main(out_case):\n    case = json.loads(out_case or '{}') if isinstance(out_case, str) else (out_case or {})\n    return {\n        'v_status':     case.get('status', ''),\n        'v_fault_type': case.get('matched_fm', ''),\n        'v_resolution': case.get('resolution_note', ''),\n    }\n"
+        code: "import json\ndef main(out_case):\n    case = json.loads(out_case or '{}') if isinstance(out_case, str) else (out_case or {})\n    resolution = (case.get('resolution_note') or '').strip()\n    if not resolution and case.get('procedure'):\n        resolution = 'resolved via ' + case['procedure'] + '; cause ' + (case.get('confirmed_cause') or '')\n    return {\n        'v_status':     case.get('status', ''),\n        'v_fault_type': case.get('matched_fm', ''),\n        'v_resolution': resolution,\n    }\n"
     - id: vault_write
       type: custom
       selected: false
