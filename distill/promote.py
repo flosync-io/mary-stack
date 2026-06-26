@@ -6,9 +6,11 @@ Default: dry-run (print only, write nothing).
   --apply: writes version-bumped knowledge.json + decision log to --out,
            and stamps the vault ledger (mark_promoted) for bucket sessions.
 
-ADD candidates that can't satisfy the knowledge schema (missing
-component_ref, title, guardrail, etc.) are listed as
-"deferred — needs authoring" and are never written even with --apply.
+ADD candidates route through an LLM drafter (draft_add): dry-run writes a
+human-authorable draft to out/add_<conv>.draft.json (never auto-inserted — it
+carries unfilled TODO sentinels). --apply merges a draft as a NEW failure_mode
+only once its TODOs are filled and it passes schema validation; otherwise it is
+blocked and skipped (ENRICH/REVISE still apply).
 
 Routing:
   resolved + matched_fm in knowledge  -> ENRICH  (provenance+count only)
@@ -40,8 +42,9 @@ from render import narrate
 RESOLVED_STATUSES = ("green", "resolved")
 CONTRADICT_HINTS = ("did not", "didn't", "not hold", "escalat", "recurred", "no longer", "wrong")
 
-FM_SCHEMA_REQUIRED = {"id", "component_ref", "title", "guardrail", "case_count",
-                      "symptom_signature", "causes"}
+# Any draft still containing this substring has a field the human must author
+# (emitted by draft_add). Such a draft is incomplete and must not be merged.
+TODO_SENTINEL = "TODO: human must author"
 
 
 def load(p):
@@ -98,26 +101,19 @@ def build_change(conv_id, rt, fm_index, knowledge):
 
     if op == "add":
         fid = new_fm_id(rt.get("reported", "unknown"), fm_index)
-        skeleton = {
-            "id": fid,
-            "name": (rt.get("reported", "")[:60].capitalize()),
-            "symptoms": [rt.get("reported", "")],
-            "checks": [],
-            "resolution": rt.get("resolution_note", ""),
-            "escalate": False,
-            "provenance": [conv_id],
-            "evidence_count": 1,
-        }
-        missing = sorted(FM_SCHEMA_REQUIRED - set(skeleton.keys()))
-        deferred = bool(missing)
+        # ADD is never auto-applied. The FM body must be human-authored from an
+        # LLM draft (draft_add) and merged on --apply only after its TODOs are
+        # filled. We carry the runtime so the dry-run can draft it, and keep
+        # deferred=True so apply_changes never appends an un-authored skeleton.
         return {
             "op": "add",
             "target_id": fid,
             "before": None,
-            "after": skeleton,
+            "after": None,
             "grounding": grounding,
-            "deferred": deferred,
-            "deferred_reason": ("needs authoring: " + ", ".join(missing)) if deferred else None,
+            "runtime": rt,
+            "deferred": True,
+            "deferred_reason": "ADD — draft must be human-authored before merge",
         }
 
     before = json.loads(json.dumps(fm_index[target]))
@@ -189,6 +185,66 @@ def validate_schema(knowledge, schema_path):
         return [e.message for e in errs]
     except ImportError:
         return []
+
+
+def validate_fm(fm, schema_path):
+    """Schema-validate a single failure_mode draft against contracts/schema.json.
+
+    Wraps the FM in {"failure_modes": [fm]} so the schema's $ref resolves, then
+    returns the list of validation error messages ([] = valid). Returns [] (and
+    so can't gate) only if the schema file is absent or jsonschema isn't installed.
+    """
+    if not schema_path or not os.path.exists(schema_path):
+        return []
+    try:
+        from jsonschema import Draft202012Validator
+        schema = load(schema_path)
+        errs = Draft202012Validator(schema).iter_errors({"failure_modes": [fm]})
+        return [e.message for e in errs]
+    except ImportError:
+        return []
+
+
+def load_completed_draft(draft_path, schema_path):
+    """Gate a human-completed ADD draft before merge.
+
+    Returns (fm_dict, None) when the draft exists, has no unfilled TODO
+    sentinels, and validates against the failure_mode schema. Otherwise returns
+    (None, reason) — the caller blocks and skips it. This is the gate that makes
+    the human-authoring step mandatory.
+    """
+    if not os.path.exists(draft_path):
+        return None, "draft not found (run dry-run first, then author the TODOs)"
+    try:
+        draft = load(draft_path)
+    except (json.JSONDecodeError, OSError) as exc:
+        return None, f"unreadable draft ({exc})"
+    if TODO_SENTINEL in json.dumps(draft):
+        return None, "unfilled TODOs"
+    errs = validate_fm(draft, schema_path)
+    if errs:
+        return None, f"schema-invalid ({errs[0]})"
+    return draft, None
+
+
+def write_add_draft(ch, knowledge, out_dir):
+    """Dry-run: draft a new FM via the LLM and write out/add_<conv>.draft.json.
+
+    Returns (draft_path, None) on success or (draft_path, error_msg) on failure
+    (missing OPENAI_API_KEY, an LLM parse error, etc.) — the run continues either
+    way so other changes still report. The draft is NOT inserted into knowledge.
+    """
+    conv = ch["grounding"]["conversation_id"]
+    draft_path = os.path.join(out_dir, f"add_{conv}.draft.json")
+    try:
+        from draft_add import draft_add
+        draft = draft_add(ch["runtime"], knowledge)
+    except Exception as exc:
+        return draft_path, str(exc)
+    os.makedirs(out_dir, exist_ok=True)
+    with open(draft_path, "w") as f:
+        json.dump(draft, f, indent=2)
+    return draft_path, None
 
 
 def print_change(ch, i, total):
@@ -267,8 +323,14 @@ def main():
     already = sum(1 for c in raw if c is None)
     changes = [c for c in raw if c is not None]
 
-    active   = [c for c in changes if not c.get("deferred")]
-    deferred = [c for c in changes if c.get("deferred")]
+    adds = [c for c in changes if c["op"] == "add"]
+
+    # schema used for the per-draft ADD gate. Defaults to contracts/schema.json
+    # even when --schema is not passed, so the ADD merge gate is always real.
+    # (The whole-knowledge validation below still only runs with an explicit
+    # --schema, preserving the smoke-test path.)
+    add_schema = a.schema or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), os.pardir, "contracts", "schema.json")
 
     # ── header ────────────────────────────────────────────────────────────────
     src_label = "files" if use_files else f"bucket/{a.source}"
@@ -278,19 +340,69 @@ def main():
         f"{skipped_open} skipped (not resolved) · {already} already promoted"
     )
 
+    # enrich/revise blocks (ADDs are handled in their own section below)
     for i, ch in enumerate(changes, 1):
+        if ch["op"] == "add":
+            continue
         print_change(ch, i, len(changes))
 
+    # ── ADD path ────────────────────────────────────────────────────────────────
+    # dry-run: draft each new FM (LLM) → out/add_<conv>.draft.json, needs authoring.
+    # --apply: merge only drafts whose TODOs are filled and that pass schema.
+    add_merged, add_blocked, add_drafted = [], [], []
+    for ch in adds:
+        conv = ch["grounding"]["conversation_id"]
+        draft_path = os.path.join(a.out, f"add_{conv}.draft.json")
+        print(f"\n── ADD  {conv}")
+        print(f"   narrative : {ch['grounding']['narrative']}")
+        if a.apply:
+            # idempotency: never re-add a conv already folded into a failure_mode
+            if any(conv in fm.get("provenance", []) for fm in knowledge.get("failure_modes", [])):
+                print("   already promoted — skipping")
+                ch["deferred"] = True
+                continue
+            draft, reason = load_completed_draft(draft_path, add_schema)
+            if draft is None:
+                print(f"   ADD blocked: {conv} draft incomplete "
+                      f"(unfilled TODOs / schema-invalid), not merged")
+                print(f"     reason: {reason}")
+                ch["deferred"] = True
+                add_blocked.append(conv)
+            else:
+                draft["provenance"] = [conv]
+                draft["evidence_count"] = 1
+                ch["after"] = draft
+                ch["target_id"] = draft.get("id", ch["target_id"])
+                ch["deferred"] = False
+                print(f"   merge     : new failure_mode {ch['target_id']}  "
+                      f"(draft complete ← {draft_path})")
+                add_merged.append(conv)
+        else:
+            path, err = write_add_draft(ch, knowledge, a.out)
+            if err:
+                print(f"   ADD draft FAILED ({err}) — no draft written, fix and re-run")
+            else:
+                print(f"   ADD (draft written → {path}, needs human authoring)")
+                add_drafted.append(path)
+
+    # ── summary ──────────────────────────────────────────────────────────────────
     counts = {}
-    for c in active:
-        counts[c["op"]] = counts.get(c["op"], 0) + 1
+    for c in changes:
+        if c["op"] != "add":
+            counts[c["op"]] = counts.get(c["op"], 0) + 1
 
     parts = []
-    for op in ("enrich", "revise", "add"):
+    for op in ("enrich", "revise"):
         if op in counts:
             parts.append(f"{counts[op]} {op}")
-    if deferred:
-        parts.append(f"{len(deferred)} deferred (needs authoring)")
+    if adds:
+        if a.apply:
+            if add_merged:
+                parts.append(f"{len(add_merged)} add (merged)")
+            if add_blocked:
+                parts.append(f"{len(add_blocked)} add (blocked — incomplete)")
+        else:
+            parts.append(f"{len(add_drafted)} add (draft written, needs authoring)")
     parts.append(f"{skipped_open + already} skipped")
 
     print(f"\n{'─' * 60}")
@@ -309,6 +421,10 @@ def main():
             sys.exit(1)
 
         new_version = candidate["_meta"]["version"]
+
+        # recompute after ADD gating: merged ADDs flipped to deferred=False above
+        active   = [c for c in changes if not c.get("deferred")]
+        deferred = [c for c in changes if c.get("deferred")]
 
         if use_files:
             kb_out = os.path.join(a.out, f"knowledge-{machine}.json")
@@ -346,12 +462,13 @@ def main():
         with open(log_out, "w") as f:
             json.dump(log, f, indent=2)
 
-        # stamp vault ledger for sessions that were actually folded in
-        if store is not None:
-            promoted_ids = [c["grounding"]["conversation_id"] for c in active]
-            if promoted_ids:
+        # stamp vault ledger for sessions that were actually folded in (ENRICH,
+        # REVISE, and merged ADDs alike — `active` already excludes blocked ADDs)
+        promoted_ids = [c["grounding"]["conversation_id"] for c in active]
+        if promoted_ids:
+            print(f"         promoted: {promoted_ids}")
+            if store is not None:
                 store.mark_promoted(promoted_ids, new_version)
-                print(f"         marked promoted: {promoted_ids}")
 
         print(f"\n--apply: wrote {kb_out}  (version {new_version})")
         print(f"         wrote {log_out}")
