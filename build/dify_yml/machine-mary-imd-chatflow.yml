@@ -345,6 +345,32 @@ workflow:
         isInLoop: false
         sourceType: assigner
         targetType: http-request
+    - id: persist-source-vault_fields-target
+      source: persist
+      target: vault_fields
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      selected: false
+      data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: assigner
+        targetType: code
+    - id: vault_fields-source-vault_write-target
+      source: vault_fields
+      target: vault_write
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      selected: false
+      data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
     nodes:
     - id: start
       position:
@@ -359,14 +385,14 @@ workflow:
           type: text-input
           required: false
           max_length: 256
-          default: ''
+          default: 'DMC80FD-01'
           options: []
         - variable: operator_id
           label: operator_id
           type: text-input
           required: false
           max_length: 256
-          default: ''
+          default: 'op-test'
           options: []
         - variable: flags
           label: flags
@@ -1094,3 +1120,85 @@ workflow:
           max_write_timeout: 30
         title: N15 Write runtime (scaffold+update)
         desc: upsert the incremental case every turn
+    - id: vault_fields
+      type: custom
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+      height: 120
+      position:
+        x: 3120
+        y: 500
+      positionAbsolute:
+        x: 3120
+        y: 500
+      data:
+        type: code
+        title: N16a vault_fields (extract flat vars)
+        desc: parse out_case JSON and expose status/matched_fm/resolution_note as flat outputs for N16
+        selected: false
+        code_language: python3
+        variables:
+        - variable: out_case
+          value_selector:
+          - engine
+          - out_case
+          value_type: string
+        outputs:
+          v_status:
+            type: string
+            children: null
+          v_fault_type:
+            type: string
+            children: null
+          v_resolution:
+            type: string
+            children: null
+        code: "import json\ndef main(out_case):\n    case = json.loads(out_case or '{}') if isinstance(out_case, str) else (out_case or {})\n    return {\n        'v_status':     case.get('status', ''),\n        'v_fault_type': case.get('matched_fm', ''),\n        'v_resolution': case.get('resolution_note', ''),\n    }\n"
+    - id: vault_write
+      type: custom
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+      height: 120
+      position:
+        x: 3360
+        y: 500
+      positionAbsolute:
+        x: 3360
+        y: 500
+      data:
+        type: http-request
+        selected: false
+        method: post
+        url: '{{#env.SUPABASE_URL#}}/rest/v1/vault'
+        authorization:
+          type: no-auth
+          config: null
+        headers: 'apikey:{{#env.SUPABASE_SERVICE_KEY#}}
+
+          Authorization:Bearer {{#env.SUPABASE_SERVICE_KEY#}}
+
+          Content-Type:application/json
+
+          Prefer:resolution=merge-duplicates'
+        params: ''
+        body:
+          type: raw-text
+          data:
+          - type: text
+            value: '{"conversation_id":"{{#sys.conversation_id#}}","machine_id":"{{#start.machine_id#}}","operator_id":"{{#start.operator_id#}}","status":"{{#vault_fields.v_status#}}","fault_type":"{{#vault_fields.v_fault_type#}}","resolution":"{{#vault_fields.v_resolution#}}"}'
+        variables: []
+        ssl_verify: true
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        timeout:
+          max_connect_timeout: 10
+          max_read_timeout: 30
+          max_write_timeout: 30
+        title: N16 Write vault (index row)
+        desc: upsert conversation index row every turn; merge-duplicates preserves original created_at
