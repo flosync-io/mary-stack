@@ -234,6 +234,21 @@
    ],
    "energy_bearing": false,
    "iso14224_class": "control_data"
+  },
+  {
+   "id": "cmp_4axis_hydraulic_clamp",
+   "machine_id": "DMC80FD-01",
+   "parent": "cmp_c_table",
+   "level": "component",
+   "name": "4th-axis hydraulic workholding clamp (rotary fixture)",
+   "aliases": [
+    "the clamp",
+    "fixture clamp",
+    "4th-axis clamp",
+    "work clamp"
+   ],
+   "energy_bearing": true,
+   "iso14224_class": "clamping_device"
   }
  ],
  "failure_modes": [
@@ -984,7 +999,11 @@
     "watered-down coolant",
     "off-mix coolant",
     "milky coolant"
-   ]
+   ],
+   "provenance": [
+    "949705bb-9870-445b-9532-28454a718199"
+   ],
+   "evidence_count": 1
   },
   {
    "id": "fm_chatter",
@@ -1045,6 +1064,76 @@
     }
    ],
    "anti_pattern": "Do not just slow the feed/speed to 'mask' chatter without checking the insert - a worn edge keeps degrading and can break."
+  },
+  {
+   "id": "fm_part_creeping_mid_cut_clamp_not_holding",
+   "component_ref": "cmp_4axis_hydraulic_clamp",
+   "title": "4th-axis hydraulic clamp pressure loss \u2014 part creeps mid-cut (no alarm)",
+   "guardrail": false,
+   "case_count": 1,
+   "symptom_signature": {
+    "conditions": [
+     [
+      "cmp_4axis_hydraulic_clamp",
+      "not_holding"
+     ],
+     [
+      "cmp_4axis_hydraulic_clamp",
+      "pilot_pressure_low"
+     ]
+    ],
+    "observations": [
+     "No alarm \u2014 machine is mechanically happy, but the part physically shifts in the fixture mid-cut",
+     "Surface finish walks out of tolerance on a 4th-axis job",
+     "Clamp pilot pressure measured below spec at the fixture",
+     "Confirmed not coolant and not chatter \u2014 the clamp is losing grip"
+    ],
+    "alarm_codes": [],
+    "operator_phrases": [
+     "clamp's not holding",
+     "the part keeps creeping mid-cut",
+     "no alarm",
+     "finish walks out of tolerance",
+     "it's not coolant and not chatter",
+     "the part physically shifts in the fixture mid-cut"
+    ],
+    "operational_context": {
+     "operation": "4th-axis job",
+     "cut_type": "milling",
+     "machine_mode": "AUTO",
+     "stopped_phase": "running_no_stop"
+    }
+   },
+   "causes": [
+    {
+     "id": "cause_clamp_cylinder_worn_seal_drops_pilot_pressure",
+     "mechanism": "Worn seal in the hydraulic clamp cylinder lets clamp pilot pressure bleed/drop below spec, so clamping force fades during the cut and the part creeps/shifts in the fixture. No alarm \u2014 a soft hydraulic failure. Resolved by replacing the clamp-cylinder seal and re-verifying that pressure holds at spec.",
+     "seed_prior": 0,
+     "case_count": 1,
+     "last_seen": null,
+     "action_level": "L3",
+     "escalate_to": "maintenance",
+     "confirm_checks": [
+      "chk_clamp_pilot_pressure"
+     ],
+     "procedures": [
+      "proc_replace_clamp_cylinder_seal"
+     ],
+     "$seed_prior_basis": "First case (conv 9cc87d7e). Senior diagnosed a worn clamp-cylinder seal dropping pilot pressure; seal swap restored spec. seed_prior 0 \u2014 not SME-elicited."
+    }
+   ],
+   "aliases": [
+    "clamp not holding",
+    "part creeping mid-cut",
+    "clamp pressure loss",
+    "fixture slipping",
+    "worn clamp seal"
+   ],
+   "anti_pattern": "Do NOT keep running the program with clamp/fixture pilot pressure below spec to finish the part \u2014 a slipping 4th-axis clamp risks the part being thrown or a tool/fixture crash. Stop the cycle, verify clamp pilot pressure, and if it is below spec hand off to maintenance for the clamp-cylinder seal. Do not crank up pressure or 'top it off' to mask a failing seal, and never bypass a clamp/fixture pressure interlock.",
+   "provenance": [
+    "9cc87d7e-04cf-4b20-8c89-dba9881a01fc"
+   ],
+   "evidence_count": 1
   }
  ],
  "checks": [
@@ -1295,6 +1384,25 @@
    "safety_gate": null,
    "discriminates": {
     "cause_worn_insert": "chipped or worn"
+   },
+   "source_ref": null
+  },
+  {
+   "id": "chk_clamp_pilot_pressure",
+   "ask": "On the hydraulic gauge for the 4th-axis clamp, read the clamp pilot pressure. Is it at the fixture spec, or below?",
+   "observation_type": "visual",
+   "answers": [
+    "at spec",
+    "below spec"
+   ],
+   "cost": {
+    "time_min": 3,
+    "skill": "operator",
+    "machine_state": "stopped"
+   },
+   "safety_gate": null,
+   "discriminates": {
+    "cause_clamp_cylinder_worn_seal_drops_pilot_pressure": "below spec"
    },
    "source_ref": null
   }
@@ -1779,6 +1887,57 @@
     "soul_version": "draft",
     "approved_by": "pending"
    }
+  },
+  {
+   "id": "proc_replace_clamp_cylinder_seal",
+   "kind": "operator_fix",
+   "resolves": {
+    "failure_mode": "fm_part_creeping_mid_cut_clamp_not_holding",
+    "causes": [
+     "cause_clamp_cylinder_worn_seal_drops_pilot_pressure"
+    ]
+   },
+   "preliminary": {
+    "safety": [
+     {
+      "type": "machine_state",
+      "require": "LOTO + dump hydraulic accumulator before opening the clamp cylinder",
+      "ref": "warn_loto_hydraulics"
+     }
+    ],
+    "tools": [
+     "seal kit",
+     "pressure gauge"
+    ],
+    "skill": "maintenance",
+    "est_min": 60
+   },
+   "steps": [
+    "stp_loto_dump_accumulator",
+    "stp_open_clamp_cylinder",
+    "stp_replace_seal",
+    "stp_repressurize_verify"
+   ],
+   "closeout": {
+    "verify": "Clamp pilot pressure holds at spec through a test clamp/unclamp; clamp grips through a proveout cut.",
+    "on_verify_fail": "If pressure still drops, escalate further up maintenance \u2014 possible cylinder bore/valve issue.",
+    "restore": [
+     "remove LOTO",
+     "return to AUTO"
+    ],
+    "capture": [
+     "measured pressure before/after",
+     "seal part number"
+    ]
+   },
+   "handoff": null,
+   "source": {
+    "type": "authored_seed",
+    "source_ref": null,
+    "sme": "senior_op",
+    "soul_version": "draft",
+    "approved_by": "pending"
+   }
   }
  ],
  "steps": [
@@ -2037,5 +2196,9 @@
   "acknowledge the safety stop",
   "bypass the safety",
   "ignore the safety"
- ]
+ ],
+ "_meta": {
+  "parent_version": "2026-06-26.1",
+  "version": "2026-06-26.2"
+ }
 }
