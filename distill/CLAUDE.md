@@ -14,6 +14,8 @@ Read `BUILD-PLAN.md` before building anything here. Read ADR-0001 (`../docs/adr/
 - **`promote.py` is dry-run by default** (prints to stdout, writes nothing). Pass `--apply` to write `knowledge-{machine}.json` + `decision-log.json`. Flow: read the diff → re-run with `--apply` to approve.
 - **ADD deferred if schema-incomplete.** A new FM skeleton can't satisfy `contracts/schema.json` (requires `component_ref`, `title`, `guardrail`, `case_count`, `symptom_signature`, `causes`). Deferred ADDs are listed in stdout but never written, even with `--apply`. They need human authoring.
 - **No review.html.** Replaced by stdout narrative + before→after diff. Human reads the dry-run output, then re-runs with `--apply`.
+- **`storage.py` is the single Supabase I/O module.** All reads/writes to Storage (mary-memory bucket) and the vault table go through `StorageClient`. Nothing else imports `requests` or touches Supabase directly. Use `source="bucket"` (live) or `source="local"` (file fixtures, smoke tests). `mark_promoted(conv_ids, version)` stamps vault rows after `--apply`; local mode is a no-op.
+- **`promote.py` bucket mode:** `--machine-id DMC80FD-01` (no `--knowledge`/`--runtime`) fetches sessions via `storage.list_promotable`, blobs via `storage.get_runtime`, knowledge via `storage.get_knowledge`. `--apply` writes back via `storage.put_knowledge` and calls `storage.mark_promoted`. Legacy `--knowledge`/`--runtime` flags still work (backward compat, smoke test path).
 
 ## Build order (leaf-first)
 1. `render.py` — done.

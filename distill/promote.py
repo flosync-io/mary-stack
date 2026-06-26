@@ -3,7 +3,8 @@
 promote.py — B-zero promotion: resolved runtime.json -> knowledge.json
 
 Default: dry-run (print only, write nothing).
-  --apply: writes version-bumped knowledge.json + decision log to --out.
+  --apply: writes version-bumped knowledge.json + decision log to --out,
+           and stamps the vault ledger (mark_promoted) for bucket sessions.
 
 ADD candidates that can't satisfy the knowledge schema (missing
 component_ref, title, guardrail, etc.) are listed as
@@ -15,10 +16,23 @@ Routing:
   resolved + matched_fm null          -> ADD      (new FM skeleton; likely deferred)
   not resolved                        -> skip
 
+Input modes:
+  Bucket (default): sessions come from storage.list_promotable(machine_id);
+    blobs fetched via storage.get_runtime(); knowledge via storage.get_knowledge().
+    --apply also calls storage.mark_promoted() to stamp the vault ledger.
+
+  Local (--source local OR legacy --knowledge/--runtime flags):
+    reads files directly. mark_promoted is a no-op. Smoke test uses this path.
+
 Usage:
+  # bucket (live Supabase)
+  python promote.py --machine-id DMC80FD-01
+  python promote.py --machine-id DMC80FD-01 --apply
+
+  # local / legacy (smoke test)
   python promote.py --knowledge sample/knowledge-DMC80FD-01.json \\
                     --runtime  sample/real-runtime
-  python promote.py ... --apply   # writes knowledge.json + decision-log.json
+  python promote.py ... --apply
 """
 import argparse, json, os, glob, datetime, sys
 from render import narrate
@@ -26,9 +40,8 @@ from render import narrate
 RESOLVED_STATUSES = ("green", "resolved")
 CONTRADICT_HINTS = ("did not", "didn't", "not hold", "escalat", "recurred", "no longer", "wrong")
 
-# Required by the knowledge schema's failure_mode definition.
-# An ADD skeleton can derive 'id' from the symptom; everything else needs human authoring.
-FM_SCHEMA_REQUIRED = {"id", "component_ref", "title", "guardrail", "case_count", "symptom_signature", "causes"}
+FM_SCHEMA_REQUIRED = {"id", "component_ref", "title", "guardrail", "case_count",
+                      "symptom_signature", "causes"}
 
 
 def load(p):
@@ -37,13 +50,15 @@ def load(p):
 
 
 def resolved_runtimes(path):
+    """Legacy: scan local files and return (conv_id, dict) pairs that are resolved."""
     files = [path] if os.path.isfile(path) else sorted(glob.glob(os.path.join(path, "*.json")))
     out = []
     for fp in files:
         d = load(fp)
         if d.get("status") in RESOLVED_STATUSES:
-            out.append((fp, d))
-    return out
+            conv_id = os.path.splitext(os.path.basename(fp))[0]
+            out.append((conv_id, d))
+    return out, len(files)
 
 
 def classify(rt, fm_index):
@@ -56,24 +71,24 @@ def classify(rt, fm_index):
 
 
 def new_fm_id(symptom, existing):
-    base = "fm_" + "_".join("".join(c for c in w if c.isalnum()) for w in symptom.lower().split()[:3])
+    base = "fm_" + "_".join("".join(c for c in w if c.isalnum())
+                             for w in symptom.lower().split()[:3])
     cand, i = base, 2
     while cand in existing:
         cand = f"{base}_{i}"; i += 1
     return cand
 
 
-def build_change(fp, rt, fm_index, knowledge):
-    conv = rt.get("id") or os.path.splitext(os.path.basename(fp))[0]
+def build_change(conv_id, rt, fm_index, knowledge):
     op, target = classify(rt, fm_index)
 
     # idempotency: skip if already promoted
     if op in ("enrich", "revise") and target:
-        if conv in fm_index[target].get("provenance", []):
+        if conv_id in fm_index[target].get("provenance", []):
             return None
 
     grounding = {
-        "conversation_id": conv,
+        "conversation_id": conv_id,
         "operator_id": rt.get("operator_id", "?"),
         "narrative": narrate(rt, knowledge),
         "symptom": rt.get("reported", ""),
@@ -90,7 +105,7 @@ def build_change(fp, rt, fm_index, knowledge):
             "checks": [],
             "resolution": rt.get("resolution_note", ""),
             "escalate": False,
-            "provenance": [conv],
+            "provenance": [conv_id],
             "evidence_count": 1,
         }
         missing = sorted(FM_SCHEMA_REQUIRED - set(skeleton.keys()))
@@ -107,8 +122,8 @@ def build_change(fp, rt, fm_index, knowledge):
 
     before = json.loads(json.dumps(fm_index[target]))
     after  = json.loads(json.dumps(before))
-    if conv not in after.get("provenance", []):
-        after.setdefault("provenance", []).append(conv)
+    if conv_id not in after.get("provenance", []):
+        after.setdefault("provenance", []).append(conv_id)
     after["evidence_count"] = len(after["provenance"])
     if op == "revise":
         after["resolution"] = rt.get("resolution_note", before.get("resolution", ""))
@@ -124,7 +139,6 @@ def build_change(fp, rt, fm_index, knowledge):
 
 
 def field_diff(before, after):
-    """Return only the fields that changed, as {key: {before, after}}."""
     if before is None:
         return None
     changed = {}
@@ -167,7 +181,6 @@ def bump_version(knowledge):
 
 
 def validate_schema(knowledge, schema_path):
-    """Return list of error messages, or [] if valid (or jsonschema not installed)."""
     if not os.path.exists(schema_path):
         return []
     try:
@@ -192,7 +205,6 @@ def print_change(ch, i, total):
 
     diff = field_diff(ch["before"], ch["after"])
     if diff is None:
-        # ADD (non-deferred would be unusual but handle gracefully)
         print("   skeleton  :")
         for k, v in ch["after"].items():
             print(f"     {k}: {json.dumps(v)}")
@@ -204,45 +216,71 @@ def print_change(ch, i, total):
 
 def main():
     ap = argparse.ArgumentParser(description="Promote resolved sessions -> knowledge.json")
-    ap.add_argument("--knowledge", required=True)
-    ap.add_argument("--runtime", required=True, help="resolved runtime.json file or dir of them")
+    ap.add_argument("--machine-id", default="DMC80FD-01",
+                    help="machine ID (bucket mode; also used as the knowledge machine label)")
+    ap.add_argument("--source", default="bucket", choices=("bucket", "local"),
+                    help="bucket: fetch from Supabase; local: use --knowledge/--runtime files")
+    ap.add_argument("--env-file", default=None, help="path to .env (bucket mode)")
+    # legacy / local-mode args (still required when --source local or --knowledge is given)
+    ap.add_argument("--knowledge", default=None,
+                    help="explicit knowledge.json path (overrides storage; implies local read)")
+    ap.add_argument("--runtime", default=None,
+                    help="runtime dir or file (overrides storage; implies local read)")
     ap.add_argument("--out", default="out", help="output directory (used only with --apply)")
     ap.add_argument("--schema", default=None, help="path to contracts/schema.json")
     ap.add_argument("--apply", action="store_true",
                     help="write new knowledge.json + decision log (dry-run if omitted)")
     a = ap.parse_args()
 
-    knowledge = load(a.knowledge)
-    machine   = knowledge.get("_meta", {}).get("machine_id", "unknown")
-    fm_index  = {fm["id"]: fm for fm in knowledge.get("failure_modes", [])}
+    # ── decide input mode ─────────────────────────────────────────────────────
+    # If explicit file paths are given, use them directly (backward compat / smoke test).
+    # Otherwise use StorageClient.
+    use_files = bool(a.knowledge or a.runtime)
+    store = None
 
-    all_files = (
-        [a.runtime] if os.path.isfile(a.runtime)
-        else sorted(glob.glob(os.path.join(a.runtime, "*.json")))
-    )
-    total_sessions = len(all_files)
-    resolved = resolved_runtimes(a.runtime)
+    if use_files:
+        if not a.knowledge or not a.runtime:
+            ap.error("--knowledge and --runtime must both be provided when using file mode")
+        knowledge = load(a.knowledge)
+        resolved, total_sessions = resolved_runtimes(a.runtime)
+        # resolved = list of (conv_id, rt_dict)
+    else:
+        from storage import StorageClient
+        store = StorageClient(source=a.source, env_file=a.env_file)
+        conv_ids = store.list_promotable(a.machine_id)
+        resolved = []
+        for cid in conv_ids:
+            try:
+                rt = store.get_runtime(a.machine_id, cid)
+                if rt.get("status") in RESOLVED_STATUSES:
+                    resolved.append((cid, rt))
+            except Exception as exc:
+                print(f"  [warn] could not fetch runtime {cid}: {exc}")
+        total_sessions = len(conv_ids)
+        knowledge = store.get_knowledge(a.machine_id)
+
+    machine   = knowledge.get("_meta", {}).get("machine_id", a.machine_id)
+    fm_index  = {fm["id"]: fm for fm in knowledge.get("failure_modes", [])}
     skipped_open = total_sessions - len(resolved)
 
-    raw     = [build_change(fp, rt, fm_index, knowledge) for fp, rt in resolved]
+    raw     = [build_change(cid, rt, fm_index, knowledge) for cid, rt in resolved]
     already = sum(1 for c in raw if c is None)
     changes = [c for c in raw if c is not None]
 
     active   = [c for c in changes if not c.get("deferred")]
     deferred = [c for c in changes if c.get("deferred")]
 
-    # ── header ──
-    print(f"promote.py — {machine}  ({datetime.date.today().isoformat()})")
+    # ── header ────────────────────────────────────────────────────────────────
+    src_label = "files" if use_files else f"bucket/{a.source}"
+    print(f"promote.py — {machine}  ({datetime.date.today().isoformat()})  [{src_label}]")
     print(
         f"sessions: {total_sessions} total · {len(resolved)} resolved · "
         f"{skipped_open} skipped (not resolved) · {already} already promoted"
     )
 
-    # ── per-change output ──
     for i, ch in enumerate(changes, 1):
         print_change(ch, i, len(changes))
 
-    # ── summary ──
     counts = {}
     for c in active:
         counts[c["op"]] = counts.get(c["op"], 0) + 1
@@ -258,7 +296,7 @@ def main():
     print(f"\n{'─' * 60}")
     print("  " + " · ".join(parts))
 
-    # ── apply ──
+    # ── apply ─────────────────────────────────────────────────────────────────
     if a.apply:
         os.makedirs(a.out, exist_ok=True)
         candidate = bump_version(apply_changes(knowledge, changes))
@@ -270,22 +308,29 @@ def main():
                 print(f"  {e}")
             sys.exit(1)
 
-        kb_out  = os.path.join(a.out, f"knowledge-{machine}.json")
+        new_version = candidate["_meta"]["version"]
+
+        if use_files:
+            kb_out = os.path.join(a.out, f"knowledge-{machine}.json")
+            with open(kb_out, "w") as f:
+                json.dump(candidate, f, indent=2)
+        else:
+            kb_out = f"storage: knowledge/{machine}.json"
+            store.put_knowledge(machine, candidate)
+
+        # reference files for tooling / tests (local only)
+        if use_files:
+            with open(os.path.join(a.out, "candidate.json"), "w") as f:
+                json.dump(candidate, f, indent=2)
+            with open(os.path.join(a.out, "changes.json"), "w") as f:
+                json.dump(changes, f, indent=2)
+
         log_out = os.path.join(a.out, f"decision-log-{datetime.date.today().isoformat()}.json")
-
-        with open(kb_out, "w") as f:
-            json.dump(candidate, f, indent=2)
-        # reference files for tooling / tests
-        with open(os.path.join(a.out, "candidate.json"), "w") as f:
-            json.dump(candidate, f, indent=2)
-        with open(os.path.join(a.out, "changes.json"), "w") as f:
-            json.dump(changes, f, indent=2)
-
         log = {
             "machine": machine,
             "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "parent_version": knowledge.get("_meta", {}).get("version"),
-            "new_version": candidate["_meta"]["version"],
+            "new_version": new_version,
             "applied": len(active),
             "deferred": len(deferred),
             "decisions": [
@@ -301,7 +346,14 @@ def main():
         with open(log_out, "w") as f:
             json.dump(log, f, indent=2)
 
-        print(f"\n--apply: wrote {kb_out}  (version {candidate['_meta']['version']})")
+        # stamp vault ledger for sessions that were actually folded in
+        if store is not None:
+            promoted_ids = [c["grounding"]["conversation_id"] for c in active]
+            if promoted_ids:
+                store.mark_promoted(promoted_ids, new_version)
+                print(f"         marked promoted: {promoted_ids}")
+
+        print(f"\n--apply: wrote {kb_out}  (version {new_version})")
         print(f"         wrote {log_out}")
     else:
         print(f"\n(dry-run — pass --apply to write knowledge.json + decision log)")
