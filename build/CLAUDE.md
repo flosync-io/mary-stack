@@ -11,6 +11,8 @@ Read `HANDOFF-COMPLETE.md` before touching `mary.yml` — it's the v5.1 architec
 - **Never deploy without sign-off.** Export the yml, run the gate, then a human imports to Dify.
 - **Status vocabulary:** engine writes `resolved` (was `green`) and `unresolved` (was `amber`/`red`) — matches `contracts/runtime.schema.json` enum. Never reintroduce color strings.
 - **Interpret kind `other`:** greetings, filler, unclassifiable → `other`, never `symptom`. Engine: `other` at session start → INTAKE re-prompt (reported stays empty); mid-flow → re-ask current question without advancing state. Principle: advance on positive evidence only.
+- **Vault write path (N16a + N16):** after N13 Persist, a parallel branch runs `vault_fields` (code node — parses `engine.out_case` string → flat vars) → `vault_write` (HTTP POST `/rest/v1/vault`, `Prefer: resolution=merge-duplicates`). Auth = `SUPABASE_SERVICE_KEY` (same as N15). No `created_at`/`updated_at` — DB defaults. Start node defaults: `machine_id=DMC80FD-01`, `operator_id=op-test`.
+- **`terminal=True` does not close the conversation.** No branch node in the flow reads it; it's data only. The Dify conversation stays open after DECLINE/ESCALATE — the next operator message re-enters the full pipeline.
 
 ## v5.2 backlog (planned, not started)
 P0 `no_answer` (don't let "dunno" clear a cause) · A7 wrong-machine redirect · A6 QA-flag for parameter changes (distinct from safety STOP) · clarify plausibility-floor.
