@@ -3,10 +3,11 @@
 ## Now
 `pp/dev/fix-engine-decline` MERGED to main (PR #2): `__none_of_these__` clarify escape + runtime schema + create-sample skill.
 
-Active branch `pp/dev/engine-improvements` (off main) carries the MATCH-stage improvements, 25/25 green, NOT yet exported to Dify:
+Active branch `pp/dev/engine-improvements` (off main) carries the MATCH-stage improvements, 27/27 green, NOT yet exported to Dify:
 - (A) sanity detail folds into `reported` verbatim (commit b8845a0).
 - ELICIT loop: vague low-score → probe instead of DECLINE; behavioral tapped-out stop (commit 2829895).
 - `elicit_attempts` DSL wiring fix (6 sites) — first import returned empty engine output because only the code was edited; now mirrors `clarify_attempts`. Re-import will work.
+- MATCH re-gated FLOOR-FIRST: floor tested before bunched, so bunched-but-all-below-floor → ELICIT (was wrongly CLARIFY-ing a menu of disbelieved candidates). **This closes the v5.2 "clarify plausibility-floor" backlog item.**
 
 ## Next
 - Export `pp/dev/engine-improvements` yml to Dify (deploy gate: human imports after test pass) — carries (A) sanity-fold + ELICIT + the elicit_attempts wiring.

@@ -404,6 +404,36 @@ def elicit_substance_keeps_probing(m, KJ):
     assert r["trace"].get("reason") == "elicit_exhausted", r["trace"].get("reason")
 
 
+@test
+def bunched_but_below_floor_elicits_not_clarifies(m, KJ):
+    # The floor gates whether a menu is offered at all. Candidates that are bunched (near-tie)
+    # but ALL below DECLINE_FLOOR are not real candidates -> ELICIT (probe), NOT a CLARIFY menu
+    # of guesses Mary doesn't believe in. Floor is now tested BEFORE bunched.
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.18},
+                     {"fm_id": "fm_chatter", "score": 0.14},
+                     {"fm_id": "fm_part_creeping_mid_cut_clamp_not_holding", "score": 0.06}]}
+    s = Session(m, KJ)
+    s.turn("symptom", "something's a bit off, hard to pin down")     # -> SANITY
+    r = s.turn("check_answer", "not totally sure", scores=sc)
+    assert r["move"] == "ELICIT", ("bunched-but-all-below-floor must probe, not clarify", r["move"], r["trace"].get("reason"))
+    assert r["trace"].get("reason") == "elicit", r["trace"].get("reason")
+    assert r["envelope"]["modality"] == "free_text", ("no menu below the floor", r["envelope"].get("modality"))
+    assert r["envelope"]["options"] == [], ("sub-floor candidates must not be offered as options", r["envelope"].get("options"))
+
+
+@test
+def bunched_above_floor_still_clarifies(m, KJ):
+    # Regression: genuinely plausible bunched candidates (both >= floor) still disambiguate via
+    # the CLARIFY menu. The floor reorder must not touch this path.
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.62},
+                     {"fm_id": "fm_chatter", "score": 0.58}]}
+    s = Session(m, KJ)
+    s.turn("symptom", "bad finish, no alarm")                        # -> SANITY
+    r = s.turn("check_answer", "nothing changed", scores=sc)
+    assert r["move"] == "ASK_CLARIFY", ("bunched-above-floor must still clarify", r["move"], r["trace"].get("reason"))
+    assert len(r["envelope"]["options"]) >= 2, ("clarify must offer the real candidates", r["envelope"].get("options"))
+
+
 def main():
     m, KJ = load_engine()
     fails = 0
