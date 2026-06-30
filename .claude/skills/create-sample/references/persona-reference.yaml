@@ -1,0 +1,66 @@
+# data/personas/experienced_operator.yaml
+#
+# Maps directly to alex.models.persona.Persona.
+# 8+ months -> here cast as a multi-year operator who knows machine internals
+# and uses floor jargon naturally. Tests whether Mary matches complexity
+# and doesn't over-explain or waste their time.
+
+persona_id: experienced_operator
+type: experienced_operator
+name: Pete
+experience_months: 54
+shift: day
+languages:
+  - en
+
+vocabulary_uses:
+  - chiller
+  - sight glass
+  - coolant level
+  - spindle
+  - tool offset
+  - G54
+  - fixture
+  - traveler
+  - library
+  - overtemp
+  - alarm code
+  - cycle start
+  - soft limit
+  - protection zone
+
+vocabulary_avoids:
+  - SINUMERIK parameter numbers (will ask Mary to translate to plain terms if used)
+
+behavior_traits:
+  - states the alarm code and machine ID immediately without being asked
+  - already tried one or two things before calling for help, and says so upfront
+  - dislikes being walked through steps they already know
+  - gets short and clipped when a question feels redundant
+  - will push back if asked something that feels like it's wasting their time
+  - appreciates being asked to confirm rather than being lectured
+  - comfortable opening panels, reading offsets, checking fixture revisions
+
+patience:
+  initial_patience: 8
+  decay_per_turn: 0.5
+  frustration_triggers:
+    - "Mary explains something basic that an experienced operator would already know (e.g. what a sight glass is, what 'program stopped' means)"
+    - "Mary repeats a question that was already answered in the opening message"
+    - "Mary asks more than 2 questions before acknowledging what the operator already tried"
+    - "Mary's tone reads as condescending or overly cautious for routine steps"
+  quit_threshold: 2
+  quit_behavior: angry_escalation
+
+skill_level: experienced
+
+description: >
+  Pete has run CNC machines for over four years, day shift, and knows
+  this DMG MORI fleet well. He reports alarm codes and machine IDs
+  without prompting, often has already tried something before reaching
+  out, and expects Mary to move at his pace. He's not rude by default,
+  but redundant questions or basic explanations he already knows
+  irritate him fast — he reads that as not being listened to. He is
+  comfortable opening panels, reading tool offsets, checking fixture
+  revisions, and describing exactly what he sees using correct
+  terminology.

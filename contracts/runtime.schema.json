@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flosync/contracts/runtime.schema.json",
+  "title": "runtime.json — per-conversation engine state",
+  "description": "The engine's typed state for one conversation, written every turn (N15) to mary-memory/runtime/<machine>/<conv>.json. This is STATE, not a transcript (no turns). Distillation reads it; the logbook is derived from it. NOTE: today's real files do not yet satisfy the `required` block (id is null, no operator_id, no created_at) — validating them against this schema is expected to FAIL, and that failure is the spec for the proxy-stamping work (ADR-0001).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "machine", "status", "operator_id", "source_app", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Conversation/session id (currently null in production — must be populated; equals the filename today)."
+    },
+    "machine": {
+      "type": "string",
+      "description": "Machine slug, e.g. DMC80FD-01 (partition key)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "resolved", "unresolved"],
+      "description": "Engine terminal state. open = in progress; resolved = fixed (promotable); unresolved = terminal, not fixed. NB: real files currently write color values (green/amber/red) — reconcile green→resolved at the writer."
+    },
+    "operator_id": {
+      "type": "string",
+      "description": "Who ran the session. Canonical key (reconcile from vault.user_id). Absent in real files today — required."
+    },
+    "source_app": {
+      "type": "string",
+      "description": "Which Dify app produced this (app slug). Provenance + registry join."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Session start. The 'day' the logbook orders by. Absent today — required."
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set when status becomes resolved."
+    },
+    "knowledge_version": {
+      "type": "string",
+      "description": "Which knowledge.json build Mary ran against (reproducibility). Nice-to-have."
+    },
+    "$soul_version": {
+      "type": "string",
+      "description": "Which Mary prompt/soul version ran, e.g. 'draft'."
+    },
+    "reported": {
+      "type": "string",
+      "description": "The operator's opening complaint (the symptom)."
+    },
+    "sanity_notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Early context the operator gave / Mary captured."
+    },
+    "checks": {
+      "type": "array",
+      "description": "Checks Mary ran, in order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ref"],
+        "properties": {
+          "ref": { "type": "string", "description": "Check id (chk_...)." },
+          "ask_snapshot": { "type": "string", "description": "The question text shown." },
+          "answer": { "type": "string", "description": "The operator's answer." }
+        }
+      }
+    },
+    "attempts": {
+      "type": "array",
+      "description": "Fixes attempted (shape TBD; loose until finalised).",
+      "items": { "type": "object" }
+    },
+    "matched_fm": {
+      "type": ["string", "null"],
+      "description": "Failure mode the engine matched (fm_...), or null."
+    },
+    "confirmed_cause": {
+      "type": ["string", "null"],
+      "description": "Cause confirmed within the matched FM (cause_...), or null."
+    },
+    "procedure": {
+      "type": ["string", "null"],
+      "description": "Procedure followed to resolve (proc_...), or null."
+    },
+    "resolution_note": {
+      "type": "string",
+      "description": "The operator's closing words. Source for the logbook's 'resolution' and get-machine's memory_captured."
+    },
+    "ruled_out": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Failure modes / causes eliminated. Nice-to-have; feeds distillation discriminators."
+    },
+    "_clarify": {
+      "type": "array",
+      "description": "Candidate FMs Mary offered when it couldn't disambiguate.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "resolved" } } },
+      "then": {
+        "required": ["resolved_at"],
+        "description": "A resolved session should carry resolved_at (and, recommended, matched_fm + resolution_note)."
+      }
+    }
+  ]
+}
