@@ -1,0 +1,133 @@
+{
+  "context_id": "ctx_wrong_tool_data_003_experienced",
+  "version": "2.0",
+  "linked_scenario_id": "scen_wrong_tool_data_day",
+  "linked_persona_id": "experienced_operator",
+  "target_failure_mode_id": "fm_wrong_tool_data",
+  "conversation_type": "multi_action",
+  "environment": {
+    "shift": "day",
+    "time": "13:50",
+    "machine_id": "ATI-VMC-05",
+    "machine_model": "DMG MORI DMC 80",
+    "machine_state": "alarm_active",
+    "program_stopped": true,
+    "senior_available": true,
+    "recent_job": "OP30 finish pass, T12 swapped in, program stopped at tool call",
+    "alarm_displayed": {
+      "code": "6421",
+      "text": "Tool not in magazine",
+      "hmi_color": "amber"
+    },
+    "operator_knowledge": {
+      "knows": [
+        "Alarm 6421 \u2014 tool not in magazine \u2014 fired at the T12 call",
+        "Already glanced at the Magazine list on screen, T12 showed up but in a different pocket number than expected",
+        "Knows how to read the Magazine list and the setup sheet"
+      ],
+      "does_not_know": [
+        "Whether T12 is in the wrong pocket or whether it's a data problem"
+      ],
+      "vocabulary": {
+        "uses": [
+          "tool not in magazine",
+          "6421",
+          "T12",
+          "Magazine list",
+          "pocket",
+          "setup sheet",
+          "tool list",
+          "touch off"
+        ],
+        "does_not_use": []
+      }
+    }
+  },
+  "observable_facts": [
+    {
+      "fact_id": "magazine_list_pocket",
+      "actual_state": "tool_in_wrong_pocket",
+      "what_operator_sees": "On the Magazine list, T12 shows as sitting in pocket 18. My setup sheet says T12 goes in pocket 12.",
+      "requires_guidance_to_find": false,
+      "guidance_response": null
+    },
+    {
+      "fact_id": "tool_length_data",
+      "actual_state": "length_present_and_reasonable",
+      "what_operator_sees": "Tool data for T12 shows a length value \u2014 it's not blank, looks like a reasonable number",
+      "requires_guidance_to_find": true,
+      "guidance_response": "Checked the Tool list. T12 has a length value in there, not blank or zero."
+    }
+  ],
+  "procedure_tree": {
+    "expected_cause": "cause_tool_wrong_pocket",
+    "expected_procedure": "proc_match_magazine_to_sheet",
+    "checks": [
+      {
+        "check_id": "chk_tool_pocket_vs_sheet",
+        "mary_will_likely_ask": "On the Magazine list, is T12 sitting in the pocket your setup sheet assigns it?",
+        "alex_initial_response": "Already checked. T12 is in pocket 18 but the setup sheet says it should be in pocket 12. Somebody put it back wrong.",
+        "alex_after_guidance": null,
+        "result_value": "in the wrong pocket"
+      },
+      {
+        "check_id": "chk_tool_length_present",
+        "mary_will_likely_ask": "While we're there \u2014 on the Tool list, does T12 have an actual length value, or is it blank or zero?",
+        "alex_initial_response": "Not blank. There's a length in there, looks normal.",
+        "alex_after_guidance": null,
+        "result_value": "length/diameter present"
+      }
+    ],
+    "safety_gates": [
+      {
+        "gate_id": "spindle_stopped",
+        "current_state": true,
+        "alex_confirmation": "Spindle's not turning, alarm stopped everything"
+      },
+      {
+        "gate_id": "tool_changer_at_rest",
+        "current_state": true,
+        "alex_confirmation": "ATC arm is at rest, not mid-cycle"
+      }
+    ],
+    "steps": [
+      {
+        "step_id": "stp_compare_pocket_sheet",
+        "action_description": "Confirm T12 vs setup sheet assignment on the Magazine list",
+        "alex_can_do": true,
+        "alex_observation": "Yeah, T12 is in pocket 18, setup sheet says pocket 12. Clear mismatch.",
+        "expected_result": "Pocket mismatch confirmed against setup sheet",
+        "time_estimate_min": 2
+      },
+      {
+        "step_id": "stp_return_tool_to_pocket",
+        "action_description": "Move T12 to its assigned pocket (spindle stopped, changer at rest)",
+        "alex_can_do": true,
+        "alex_observation": "Moved T12 to pocket 12. Magazine list now shows it in the right spot.",
+        "expected_result": "T12 in assigned pocket, Magazine list confirms",
+        "time_estimate_min": 4
+      }
+    ],
+    "deviations": [
+      {
+        "trigger": "After moving to correct pocket, program still stops at T12 call",
+        "alex_report": "Moved it to pocket 12 but it's still stopping at the T12 call, different alarm now",
+        "expected_mary_policy": "reopen_diagnosis",
+        "expected_mary_response": "If it's still stopping after fixing the pocket, we may have a tool data problem. Let's check the length value for T12 against the preset sheet."
+      },
+      {
+        "trigger": "Tool length doesn't match the preset sheet",
+        "alex_report": "Compared T12 length in the table to the preset sheet \u2014 the numbers don't agree, difference is about 8mm",
+        "expected_mary_policy": "safe_state_escalate",
+        "expected_mary_response": "Don't guess at the correct value or enter one yourself. An 8mm error on tool length means a potential crash \u2014 escalate to the programmer to measure and re-enter the correct data."
+      }
+    ]
+  },
+  "expected_resolution": {
+    "cause_confirmed": "cause_tool_wrong_pocket",
+    "procedure_completed": "proc_match_magazine_to_sheet",
+    "outcome": "fixed",
+    "total_time_estimate_min": 10
+  },
+  "patience_override": null
+}

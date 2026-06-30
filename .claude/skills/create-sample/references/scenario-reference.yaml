@@ -1,0 +1,38 @@
+# data/scenarios/scen_003_wrong_tool_data.yaml
+scenario_id: scen_wrong_tool_data_day
+title: "Wrong Tool Data Mid-Program — Experienced Operator, Multi-Step Fix"
+conversation_type: multi_action
+target_failure_mode_id: fm_wrong_tool_data
+
+machine_state:
+  machine_id: ATI-VMC-05
+  alarm_active: true
+  alarm_code: "210087"
+  alarm_text: "Tool length offset mismatch"
+  program_running: "OP30_finish.nc"
+  program_stopped: true
+  hmi_display: "amber"
+
+shift: day
+time: "13:50"
+senior_available: true
+
+recent_job_description: >
+  Mid-run on a finish pass, tool change just happened (T12 swapped in),
+  and the machine threw an offset mismatch alarm right after the
+  change completed.
+
+opening_complaint: >
+  Tool 12 just swapped in for the finish pass and threw alarm 210087,
+  tool length offset mismatch. I already checked the offset table on
+  the screen, looked fine to me at a glance.
+
+description: >
+  Pete (experienced_operator) already did a quick visual pass on the
+  offset table before calling, so the test is whether Mary acknowledges
+  what he's already checked rather than asking him to redo it, while
+  still confirming the actual discriminating detail (whether the tool
+  in the spindle matches the tool data the program expects). This is a
+  multi-action conversation — the real fix likely involves re-verifying
+  tool length, possibly re-touching off, and re-running the block. This
+  is one of the 8 real seed failure modes (wrong tool data).

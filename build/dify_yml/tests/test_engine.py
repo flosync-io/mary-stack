@@ -264,6 +264,45 @@ def other_mid_flow_reasks_does_not_advance(m, KJ):
     assert r2["move"] == "RESOLVED", r2["move"]
 
 
+@test
+def clarify_none_of_these_drives_decline(m, KJ):
+    # bunched scores -> CLARIFY; the engine must append a deterministic escape option,
+    # and selecting it must BURN a clarify slot and reach DECLINE at the cap.
+    # Regression: rejections used to classify as other (re-ask, no burn) or symptom
+    # (back to SANITY, no burn) — DECLINE was unreachable and the cap never tripped.
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.82},
+                     {"fm_id": "fm_wrong_tool_data", "score": 0.80}]}
+    s = Session(m, KJ)
+    s.turn("symptom", "weird symptom no alarm")
+    r = s.turn("check_answer", "nothing changed", scores=sc)
+    assert r["move"] == "ASK_CLARIFY", ("bunched -> clarify", r["move"])
+    # escape option is always present, always the same value, always last
+    opts = r["envelope"]["options"]
+    assert "__none_of_these__" in opts, ("missing none-of-these escape", opts)
+    assert opts[-1] == "__none_of_these__", ("escape must be appended last", opts)
+    assert opts[0] != "__none_of_these__", ("real candidates must precede the escape", opts)
+    entry_attempts = s.cv["clarify_attempts"]
+
+    # operator rejects every candidate. Realistically Interpret tags a button token 'other'
+    # (not a described symptom) — exactly the path that used to deadlock.
+    moves, attempts = [], []
+    last = r
+    for _ in range(6):
+        last = s.turn("other", "__none_of_these__")
+        moves.append(last["move"]); attempts.append(s.cv["clarify_attempts"])
+        if last["terminal"] == "true":
+            break
+    # each rejection burned a slot (strictly increasing) and progressed toward the cap
+    assert attempts[0] > entry_attempts, ("none-of-these must burn a clarify slot", entry_attempts, attempts)
+    assert all(b > a for a, b in zip([entry_attempts] + attempts, attempts)), ("must increment each turn", attempts)
+    # terminates in DECLINE — not a clarify loop, not a SANITY bounce
+    assert last["move"] == "DECLINE", ("none-of-these at cap must DECLINE, not loop", moves)
+    assert last["terminal"] == "true", ("DECLINE must be terminal", last["terminal"])
+    assert last["case"]["status"] == "unresolved", ("DECLINE status must be unresolved", last["case"].get("status"))
+    assert "SANITY" not in moves, ("rejection must not bounce to SANITY", moves)
+    assert moves[-1] != "ASK_CLARIFY", ("must not end on another clarify re-ask", moves)
+
+
 def main():
     m, KJ = load_engine()
     fails = 0

@@ -5,8 +5,10 @@
 # Live knowledge is stored in Supabase; commit only versioned snapshots you intend to pin
 # knowledge/*.local.json
 
-# generated review/session html
+# generated review/session html + draft/decision-log scratch
 distill/out/
+distill/out2/
+out/
 .DS_Store
 
 # Python
