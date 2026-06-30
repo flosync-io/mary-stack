@@ -303,6 +303,37 @@ def clarify_none_of_these_drives_decline(m, KJ):
     assert moves[-1] != "ASK_CLARIFY", ("must not end on another clarify re-ask", moves)
 
 
+@test
+def sanity_detail_enriches_reported(m, KJ):
+    # A thin first complaint, then symptom detail volunteered at the sanity beat must
+    # fold into reported (verbatim) so MATCH runs on the fuller symptom. sanity_notes
+    # must still hold the full answer (append-to-reported, NOT move).
+    s = Session(m, KJ)
+    r = s.turn("symptom", "machine stopped, red light")
+    assert r["move"] == "SANITY", r["move"]
+    base = r["case"].get("reported", "")
+    assert base, ("reported must be set after first symptom", base)
+    detail = "coolant smells off and the finish has been getting worse"
+    r2 = s.turn("check_answer", detail)
+    rep = r2["case"].get("reported", "")
+    assert detail in rep, ("volunteered detail must enrich reported, verbatim", rep)
+    assert base in rep, ("original complaint must be retained", rep)
+    assert detail in (r2["case"].get("sanity_notes") or []), ("sanity_notes must keep the full answer", r2["case"].get("sanity_notes"))
+
+
+@test
+def sanity_pure_negation_does_not_pollute_reported(m, KJ):
+    # A bare no-change answer adds nothing to the complaint: reported stays put,
+    # but sanity_notes still records it.
+    s = Session(m, KJ)
+    r = s.turn("symptom", "bad finish, tools dying, no alarm")
+    assert r["move"] == "SANITY", r["move"]
+    base = r["case"].get("reported", "")
+    r2 = s.turn("check_answer", "nothing changed")
+    assert r2["case"].get("reported", "") == base, ("pure negation must not pollute reported", base, r2["case"].get("reported"))
+    assert "nothing changed" in (r2["case"].get("sanity_notes") or []), ("sanity_notes still records the negation", r2["case"].get("sanity_notes"))
+
+
 def main():
     m, KJ = load_engine()
     fails = 0
