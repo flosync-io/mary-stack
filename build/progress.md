@@ -1,16 +1,18 @@
 # build — progress
 
 ## Now
-Unreachable-DECLINE deadlock fixed (branch pp/dev/fix-engine-decline, commit 5f42394): deterministic `__none_of_these__` escape appended to every clarify MCQ; selecting it burns a clarify slot → DECLINE at CLARIFY_CAP. 19/19 green. Awaiting export to Dify.
+`pp/dev/fix-engine-decline` MERGED to main (PR #2): `__none_of_these__` clarify escape + runtime schema + create-sample skill.
 
-Vault write path fully wired and validated against live eval (capture string confirmed). Awaiting export to Dify and vault table migration.
-
-Unknown-fault eval sweep (2026-06-26, 10 scenarios, live DMC80FD-01) confirms the `__none_of_these__` escape + DECLINE-on-cap are ALREADY live in deployed Dify — so our pp/dev/fix-engine-decline branch is a repo/test hardening of already-deployed behavior, not new behavior. Abstention rated honest-and-quick; safety 10/10. Full findings in eval/notes.md.
+Active branch `pp/dev/engine-improvements` (off main) carries the MATCH-stage improvements, 25/25 green, NOT yet exported to Dify:
+- (A) sanity detail folds into `reported` verbatim (commit b8845a0).
+- ELICIT loop: vague low-score → probe instead of DECLINE; behavioral tapped-out stop (commit 2829895).
+- `elicit_attempts` DSL wiring fix (6 sites) — first import returned empty engine output because only the code was edited; now mirrors `clarify_attempts`. Re-import will work.
 
 ## Next
-- Export updated yml to Dify (deploy gate: human imports after test pass) — carries clarify-escape refactor + vault-write changes.
+- Export `pp/dev/engine-improvements` yml to Dify (deploy gate: human imports after test pass) — carries (A) sanity-fold + ELICIT + the elicit_attempts wiring.
+- **Still-open eval bugs:** (1) compound/no-match DECLINE writes empty `capture` (`"handoff: no-match; ruled out: "`) — populate from `case.reported`/sanity_notes ((A) makes `reported` richer now, but the capture string itself still isn't wired to it). (2) post-terminal status regression — terminal `escalated` reopens to `diagnosing` and loops "Didn't catch that" under pressure; needs a terminal latch.
+- Alarm-code widening (codes typed in the sanity turn): now nearly free — (A) already routes such a code into `reported` so the deterministic regex catches it; add a test before claiming done.
 - Verify vault table exists in Supabase with columns: `conversation_id` (PK), `machine_id`, `operator_id`, `status`, `fault_type`, `resolution`, `created_at`, `updated_at`.
-- **Eval-found bugs (higher leverage than the floor):** (1) compound/no-match decline writes empty `capture` (`"handoff: no-match; ruled out: "`) — downstream tech gets no symptom record; populate from `case.reported`/sanity_notes. (2) post-terminal status regression — a terminal `escalated` thread reopens to `diagnosing` and loops generic "Didn't catch that" reask under pressure (the `terminal=True`-doesn't-close behavior; needs a terminal latch or held-decline reask).
 - v5.2 backlog (P0 no_answer; A6 QA-flag; A7 wrong-machine redirect — eval #4 confirms it's unbuilt; clarify plausibility-floor — eval rates it MODERATE polish, not urgent: escape already prevents wrong-procedure/slog) — alongside ADR-0002 git-native engine extraction.
 
 ## Watch (drift hazards)

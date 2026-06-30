@@ -185,6 +185,14 @@ workflow:
     - clarify_attempts
     value: 0
     value_type: number
+  - description: ''
+    id: 7f1e2a3b-4c5d-6e7f-8a9b-0c1d2e3f4a5b
+    name: elicit_attempts
+    selector:
+    - conversation
+    - elicit_attempts
+    value: 0
+    value_type: number
   features:
     file_upload:
       enabled: false
@@ -680,6 +688,11 @@ workflow:
           - conversation
           - clarify_attempts
           value_type: number
+        - variable: elicit_attempts
+          value_selector:
+          - conversation
+          - elicit_attempts
+          value_type: number
         outputs:
           move_type:
             type: string
@@ -739,6 +752,9 @@ workflow:
             type: string
             children: null
           out_clarify_attempts:
+            type: number
+            children: null
+          out_elicit_attempts:
             type: number
             children: null
           out_modality:
@@ -899,6 +915,14 @@ workflow:
           value:
           - engine
           - out_clarify_attempts
+        - variable_selector:
+          - conversation
+          - elicit_attempts
+          input_type: variable
+          operation: over-write
+          value:
+          - engine
+          - out_elicit_attempts
         selected: false
       type: custom
       selected: false
