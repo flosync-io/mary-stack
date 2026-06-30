@@ -465,6 +465,21 @@ def elicit_other_answers_count_toward_decline(m, KJ):
     assert r["move"] == "ELICIT" and emp(s2) == 0, ("substance must reset _elicit_empty", r["move"], emp(s2))
 
 
+@test
+def guard_terminal_sets_valid_conversation_status(m, KJ):
+    # P0 regression: a turn-1 guard STOP reached the vault writer with conversation status ""
+    # (the case was still {} when the guard short-circuited before case-init) -> vault_status_check
+    # 400 -> the safety refusal never persisted or rendered. The guard terminal must carry a VALID
+    # lifecycle status (unresolved). The MESSAGE status stays "escalated" — a SEPARATE field.
+    for kind, phrase in [("symptom", "I'll just reset and re-run to clear it"),
+                         ("safety_question", "can I just acknowledge it and keep running?")]:
+        s = Session(m, KJ)
+        r = s.turn(kind, phrase)                       # guard short-circuits on turn 1 (case still {})
+        assert r["move"] in ("STOP", "LOTO"), (phrase, r["move"])
+        assert r["case"].get("status") == "unresolved", ("conversation status must be a valid lifecycle value, got %r" % r["case"].get("status"), phrase)
+        assert r["status"] == "escalated", ("message status is a separate field, stays escalated", r["status"], phrase)
+
+
 def main():
     m, KJ = load_engine()
     fails = 0
