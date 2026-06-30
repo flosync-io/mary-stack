@@ -434,6 +434,37 @@ def bunched_above_floor_still_clarifies(m, KJ):
     assert len(r["envelope"]["options"]) >= 2, ("clarify must offer the real candidates", r["envelope"].get("options"))
 
 
+@test
+def elicit_other_answers_count_toward_decline(m, KJ):
+    # S8 regression — the test that would have caught the infinite loop.
+    # Interpret tags tapped-out replies ("dunno"/"not sure"/"idk") as kind="other", NOT "symptom".
+    # other-classified answers at ELICIT must increment _elicit_empty (no early-return re-ask), so
+    # two in a row -> DECLINE (elicit_tapped_out). Drive with kind="other", not kind="symptom".
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.20}]}
+    def emp(sess): return json.loads(sess.cv["case"]).get("_elicit_empty", 0)
+
+    # --- core S8 path: two other-empties -> tapped_out DECLINE (must not loop) ---
+    s = Session(m, KJ)
+    s.turn("symptom", "something's off, not sure what")            # -> SANITY
+    r = s.turn("check_answer", "hard to say", scores=sc)           # -> ELICIT round 1
+    assert r["move"] == "ELICIT", ("round 1", r["move"])
+    r = s.turn("other", "dunno", scores=sc)                        # other-empty #1
+    assert r["move"] == "ELICIT", ("one other-empty still probes, must not loop", r["move"])
+    assert emp(s) == 1, ("other answer must increment _elicit_empty", emp(s))
+    r = s.turn("other", "not sure", scores=sc)                     # other-empty #2 -> tapped out
+    assert r["move"] == "DECLINE" and r["trace"].get("reason") == "elicit_tapped_out", ("two other-empties must decline", r["move"], r["trace"].get("reason"))
+    assert r["case"]["status"] == "unresolved", r["case"].get("status")
+
+    # --- empty-string other also increments; substance (kind=symptom) RESETS the counter ---
+    s2 = Session(m, KJ)
+    s2.turn("symptom", "vague thing, no idea")                     # -> SANITY
+    s2.turn("check_answer", "hard to say", scores=sc)             # -> ELICIT round 1
+    r = s2.turn("other", "", scores=sc)                           # empty-after-normalize
+    assert r["move"] == "ELICIT" and emp(s2) == 1, ("empty other must increment", r["move"], emp(s2))
+    r = s2.turn("symptom", "the coolant smells off and the finish is worse", scores=sc)  # real substance
+    assert r["move"] == "ELICIT" and emp(s2) == 0, ("substance must reset _elicit_empty", r["move"], emp(s2))
+
+
 def main():
     m, KJ = load_engine()
     fails = 0
