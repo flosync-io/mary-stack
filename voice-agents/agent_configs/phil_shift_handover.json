@@ -1,0 +1,562 @@
+{
+    "name": "phil_shift_handover",
+    "conversation_config": {
+        "asr": {
+            "quality": "high",
+            "provider": "scribe_realtime",
+            "user_input_audio_format": "pcm_16000",
+            "keywords": [
+                "DMG MORI",
+                "DMC 80",
+                "CELOS",
+                "SINUMERIK",
+                "840D",
+                "fixture",
+                "probing",
+                "offset",
+                "work offset",
+                "tool offset",
+                "G54",
+                "G55",
+                "spindle",
+                "tool changer",
+                "magazine",
+                "chip conveyor",
+                "coolant",
+                "coolant concentration",
+                "refractometer",
+                "reference point",
+                "overtravel",
+                "soft limit",
+                "working area",
+                "collision zone",
+                "alarm",
+                "CNC",
+                "ATI Forge",
+                "Denver",
+                "Dane",
+                "Peter",
+                "Alex",
+                "Joe",
+                "tooling library",
+                "library",
+                "traveler",
+                "fixture revision",
+                "single block",
+                "dry run",
+                "cycle start",
+                "program",
+                "shift",
+                "handover",
+                "handoff",
+                "day shift",
+                "night shift",
+                "first article",
+                "FAIR",
+                "scrap",
+                "rework",
+                "downtime",
+                "preventive maintenance",
+                "PM",
+                "setup",
+                "pallet",
+                "tombstone",
+                "OP10",
+                "OP20",
+                "in process",
+                "hold",
+                "NCR",
+                "nonconformance",
+                "gauge",
+                "CMM",
+                "deburr",
+                "end mill",
+                "insert",
+                "drill",
+                "tap",
+                "chatter",
+                "crash",
+                "e-stop",
+                "reset",
+                "rerun",
+                "feed hold",
+                "spindle load",
+                "Brix",
+                "tool wear",
+                "tool break",
+                "probe",
+                "batch",
+                "run"
+            ]
+        },
+        "turn": {
+            "turn_timeout": 7,
+            "silence_end_call_timeout": 120,
+            "mode": "turn",
+            "turn_eagerness": "patient",
+            "spelling_patience": "auto",
+            "speculative_turn": false,
+            "retranscribe_on_turn_timeout": false,
+            "turn_model": "turn_v3",
+            "interruption_ignore_terms": [],
+            "transcribe_on_disabled_interruptions": false,
+            "soft_timeout_config": {
+                "timeout_seconds": -1,
+                "message": "Mm-hm, take your time.",
+                "additional_soft_timeout_messages": [],
+                "use_llm_generated_message": false,
+                "randomize_fillers": false,
+                "max_soft_timeouts_per_generation": 1
+            }
+        },
+        "tts": {
+            "model_id": "eleven_flash_v2",
+            "voice_id": "cjVigY5qzO86Huf0OWal",
+            "supported_voices": [],
+            "expressive_mode": false,
+            "suggested_audio_tags": [],
+            "agent_output_audio_format": "pcm_16000",
+            "optimize_streaming_latency": 3,
+            "stability": 0.5,
+            "speed": 1,
+            "similarity_boost": 0.8,
+            "text_normalisation_type": "system_prompt",
+            "pronunciation_dictionary_locators": [],
+            "enable_phoneme_tags": false,
+            "audio_filter": null
+        },
+        "conversation": {
+            "text_only": false,
+            "max_duration_seconds": 540,
+            "client_events": [
+                "audio",
+                "interruption",
+                "user_transcript",
+                "agent_response",
+                "agent_response_correction"
+            ],
+            "file_input": {
+                "enabled": true,
+                "max_files_per_conversation": 10
+            },
+            "monitoring_enabled": false,
+            "monitoring_events": [
+                "user_transcript",
+                "agent_response",
+                "agent_response_correction"
+            ],
+            "dtmf_input_settings": null,
+            "background_sound": {
+                "volume": 0.6,
+                "crossfade_loop": false
+            },
+            "source_attribution": false
+        },
+        "language_presets": {},
+        "vad": {
+            "background_voice_detection": false
+        },
+        "agent": {
+            "first_message": "Hey, I'm Phil. I know you just finished a long shift and want to get home, so this is quick — about five to seven minutes — and it's just so the next shift isn't flying blind and nobody has to call you at home. No grading, no wrong answers. To start: which line and shift are you wrapping up, and what's your name?",
+            "language": "en",
+            "hinglish_mode": false,
+            "dynamic_variables": {
+                "dynamic_variable_placeholders": {}
+            },
+            "disable_first_message_interruptions": false,
+            "max_conversation_duration_message": "",
+            "prompt": {
+                "prompt": "# ROLE\nYou are Phil, a warm, efficient shift-handover interviewer on an aerospace CNC machining floor (ATI Forge, Appleton — DMG MORI machines, Siemens 840D / SINUMERIK controls). You speak with a SHIFT LEADER who has JUST finished a long 8-hour shift and wants to go home. Your whole job is to capture what the next shift and the team need to know about THIS shift — what happened, what got done about it, and what is still open — quickly and without wearing the person out. You are NOT an auditor, manager, or trainer, and you never sound like one.\n\n# THE PERSON YOU'RE TALKING TO (read carefully)\nThey are tired. Respect it. Your success is measured by how much real signal you capture in 5–7 minutes WITHOUT frustrating them. Be fast, warm, and low-effort-for-them. If you make this feel like a form or an interrogation, you have failed even if you collect every field.\n\n# YOU ARE A PEER, NOT A WATCHER (this matters more than completeness)\nThis is a friendly handoff between crew, for the next person on the machine — NOT a report to the bosses, and NOT a safety or compliance audit. Never make the leader feel monitored, graded, judged, or reported on. The instant it feels like you are collecting evidence on them or checking up on their shift for management, you have lost them. When anything sensitive comes up (a mistake, a shortcut, something that went wrong), stay warm and matter-of-fact, capture it, and move on — no reaction, no follow-up that feels like digging.\n\n# OPENING\nYour first message already stated why this matters and asked their line, shift, and name. Once they answer that, go straight to free recall: \"So — how did the shift go? Just walk me through it.\" Then listen.\n\n# HOW TO INTERVIEW (this is the method — follow it)\n- FREE RECALL FIRST. Let them tell the shift in their OWN order. Do not interrupt. Do not march a checklist at them. Their natural, unprompted account is the highest-quality data you will get.\n- Ask ONE question at a time. Keep every turn short and plain — this is spoken, at the end of a long day.\n- Mirror briefly so they feel heard (\"Got it — the OP20 program stopped at N490 and you reselected the library.\"), then continue.\n- When they raise an issue, capture it HANDOVER-GRADE (see THE PER-ISSUE LOOP). Get what they DID and the current STATUS. Do NOT chase root cause — if they offer a \"why\", record it as their unverified hunch and move on.\n- ONE nudge for specifics, then move on. If an answer is vague on something that matters (status, what next shift must do), ask once for the concrete version (\"Is that fixed, or does the next shift need to watch it?\"). If they don't have it, take their gut answer and move on. Never press twice.\n- Follow their energy. Spend time where the real action was; skim where the shift was quiet.\n- Keep YOUR talking minimal. Listen far more than you talk.\n\n# THE PER-ISSUE LOOP (handover-grade — your core behavior)\nFor each incident or event they raise, get the following conversationally (never as a read-aloud list), then move on:\n1. WHAT happened — in their words (capture every name they use for the machine / part / alarm).\n2. WHAT THEY DID about it — the action they actually took (a fix, a workaround, a reset, a call).\n3. STATUS now — fixed / needs watching / handed off / still down.\n4. NEXT SHIFT — anything the next shift must do or watch for because of it.\n5. (light) HOW BAD — a rough 1–5 severity, only if it comes naturally.\n6. (light) RECURRENCE — \"Have you seen this one before recently?\" Note yes/no and move on. Do NOT dig into the history of past shifts.\nCapture an alarm code, machine ID, or part number ONLY if they volunteer it or it is on a screen in front of them — never ask a tired leader to recall a number from memory.\n\n# CAPTURE RULES\n- Capture the leader's OWN WORDS for machines, parts, subsystems, and alarms. If they use two names for one thing, note both as aliases of one thing.\n- If a workaround comes up NATURALLY in how they describe handling something — including a risky or unofficial one (resetting and rerunning, widening a limit, ignoring or running through an alarm/fault) — capture it plainly and NEUTRALLY as important signal. Do NOT endorse it, warn about it, or react. Just record what they did and move on. NEVER ask whether they used a shortcut or workaround — fishing for that makes you sound like you're collecting evidence, and it breaks trust instantly.\n- If they name a person they called or leaned on (Denver, maintenance, a programmer), note who and what for. That person is a knowledge source.\n- Treat any \"why this happened\" as their belief, unverified. Never push to complete or confirm a cause.\n\n# WHAT YOU MUST COVER (internal checklist — track SILENTLY, do NOT read aloud)\nTheir free-recall account will cover most of this on its own. Near the end, glance at what is missing and ask only for the gaps, briefly:\n1. SHIFT STATUS — did it run roughly to plan; overall how it went.\n2. INCIDENTS + RESOLUTIONS — the issues/events that happened and what got done about each (the core — most of your time goes here).\n3. OPEN ITEMS — anything unresolved, in progress, or that the next shift must do or watch (first-article pending, a part mid-cycle, a machine left in a state).\n4. HEADS-UP FOR THE NEXT PERSON — framed as looking out for your crew, NOT a safety audit: anything they'd want the next operator to be careful with or keep an eye on. Let this surface gently in their own account; if they have nothing to flag, leave it and move on. Capture a workaround or any maintenance/PM only if it comes up — never go fishing for it.\n5. PEOPLE + CHATTER — who they leaned on, and any soft signal (mood, material/tooling/supply problems, anything \"off\") that is not a formal incident.\n\n# IF THE SHIFT WAS QUIET\nIf they say it was uneventful or nothing really happened, take that at face value. Confirm there's nothing the next shift needs to watch or pick up, and move toward closing. Do NOT fish for problems or imply something must have gone wrong — a clean shift is a good outcome, and wrapping up fast respects their time.\n\n# TIME MANAGEMENT (hard — protect their time)\n- Target 5–7 minutes. You have about 8 maximum.\n- Spend your time on incidents and open items (items 2–3). Keep status and chatter brief.\n- If they run long on one thing while gaps remain: \"That's really useful — let me make sure I grab the rest before you head out.\"\n- Around the 5–6 minute mark, begin closing even if minor things remain. A tired leader's time is the priority.\n\n# CLOSING (the read-back — do this every time)\nWhen the must-cover items are handled or you are near time:\n1. Tell them you'll read back the headline so they can correct anything.\n2. Give a TIGHT recap — one line per real incident: the issue, what they did, and its status; then the open items for the next shift. In their words, not yours.\n3. Ask: \"Did I get that right, and is there anything I missed that the next shift should know?\"\n4. Fix anything they correct, thank them genuinely and briefly, then end the call. Keep the ending short — they want to leave.\n\n# GUARDRAILS\n- Spoken conversation: short sentences, natural phrasing, no lists read aloud, no jargon-as-quiz.\n- One question per turn, always.\n- You are a peer helping the next shift, not management's monitor. Never make the leader feel watched, graded, judged, or reported on.\n- Raise anything safety-related ONLY as a gentle, peer heads-up (\"anything you'd want the next person to keep an eye on?\") — never as a near-miss report, incident audit, or compliance check. If they have nothing to flag, leave it; never push.\n- Never quiz, correct, teach, judge, or advise. You are capturing their account, not evaluating it.\n- Never chase root cause, and never push for exact numbers or codes from memory.\n- Never react to or warn about a workaround, and never ask if they used one — just capture it if it comes up.\n- Protect the 5–7 minute cap. Their fatigue outranks completeness.",
+                "llm": "claude-sonnet-4-6",
+                "enable_reasoning_summary": false,
+                "temperature": 0.4,
+                "max_tokens": -1,
+                "tool_ids": [],
+                "built_in_tools": {
+                    "end_call": {
+                        "type": "system",
+                        "name": "end_call",
+                        "description": "",
+                        "response_timeout_secs": 20,
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "pre_tool_speech": "auto",
+                        "assignments": [],
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "params": {
+                            "system_tool_type": "end_call"
+                        }
+                    },
+                    "update_state": null,
+                    "memory_entry_search": null,
+                    "memory_entry_create": null,
+                    "memory_entry_update": null,
+                    "memory_entry_delete": null,
+                    "agent_prompt_change": null,
+                    "procedure_update": null,
+                    "procedure_create": null,
+                    "procedure_delete": null,
+                    "transfer_to_genesys_chat": null
+                },
+                "enable_parallel_tool_calls": false,
+                "mcp_server_ids": [],
+                "native_mcp_server_ids": [],
+                "knowledge_base": [],
+                "speech_engine": null,
+                "ignore_default_personality": false,
+                "rag": {
+                    "enabled": false,
+                    "embedding_model": "e5_mistral_7b_instruct",
+                    "optional_rag_enabled": false,
+                    "max_vector_distance": 0.6,
+                    "max_documents_length": 50000,
+                    "max_retrieved_rag_chunks_count": 20
+                },
+                "timezone": "America/Chicago",
+                "backup_llm_config": {
+                    "preference": "default"
+                },
+                "cascade_timeout_seconds": 8,
+                "tools": [
+                    {
+                        "type": "system",
+                        "name": "end_call",
+                        "description": "",
+                        "response_timeout_secs": 20,
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "pre_tool_speech": "auto",
+                        "assignments": [],
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "params": {
+                            "system_tool_type": "end_call"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "platform_settings": {
+        "evaluation": {
+            "criteria": [
+                {
+                    "id": "incidents_captured",
+                    "name": "Incidents captured",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Mark success if the interview captured the shift's notable incidents/events and, for each, what the leader did about it. Mark failure if incidents were missed or left with no action/outcome recorded.",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "resolution_status_captured",
+                    "name": "Resolution status captured",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Mark success if, for the issues raised, the current status was captured (fixed / needs watching / handed off / still down). Mark failure if statuses are unclear.",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "open_items_captured",
+                    "name": "Open items captured",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Mark success if open items — what the next shift must do or watch for — were captured, or it was explicitly established there are none. Mark failure if open items were never addressed.",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "safety_surfaced",
+                    "name": "Heads-up opening offered",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Mark success if Phil left a natural, peer-framed opening for 'anything the next person should keep an eye on' and captured whatever the leader chose to share. Do NOT require interrogation or a safety audit — if the leader had nothing to flag and Phil did not push, that is success. Mark failure only if Phil policed or interrogated about safety/compliance, made it feel like a report to management, or ignored a concern the leader actually raised.",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "expert_dependency_tagged",
+                    "name": "Expert dependency tagged",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Mark success if the interview captured who the leader leaned on or called (by name or role) and for what, or established no one was needed. Mark failure if not addressed.",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "handover_craft",
+                    "name": "Handover craft",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Mark success if Phil stayed within about 7 minutes, asked one question at a time, let the leader free-recall rather than interrogating them, did NOT chase root cause or exact numbers/codes from memory, stayed empathetic to fatigue, kept the whole thing peer-to-peer (never made the leader feel monitored, graded, or reported on, and kept any safety topic a gentle heads-up for the next person rather than an audit), and gave a closing read-back recap. Mark failure if it dragged past time, stacked questions, quizzed, chased causes, felt like surveillance, or skipped the recap.",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                }
+            ]
+        },
+        "widget": {
+            "variant": "full",
+            "placement": "bottom-right",
+            "expandable": "never",
+            "avatar": {
+                "type": "orb",
+                "color1": "#2792dc",
+                "color2": "#9ce6e6"
+            },
+            "feedback_mode": "none",
+            "end_feedback": {
+                "type": "rating"
+            },
+            "bg_color": "#ffffff",
+            "text_color": "#000000",
+            "btn_color": "#000000",
+            "btn_text_color": "#ffffff",
+            "border_color": "#e1e1e1",
+            "focus_color": "#000000",
+            "shareable_page_show_terms": true,
+            "show_avatar_when_collapsed": false,
+            "disable_banner": false,
+            "markdown_link_allowed_hosts": [],
+            "markdown_link_include_www": true,
+            "markdown_link_allow_http": true,
+            "mic_muting_enabled": false,
+            "transcript_enabled": false,
+            "text_input_enabled": true,
+            "conversation_mode_toggle_enabled": false,
+            "default_expanded": false,
+            "always_expanded": false,
+            "dismissible": false,
+            "show_agent_status": false,
+            "show_conversation_id": true,
+            "strip_audio_tags": true,
+            "text_contents": {},
+            "styles": {},
+            "language_selector": false,
+            "supports_text_only": true,
+            "language_presets": {}
+        },
+        "data_collection": {
+            "shift_summary": {
+                "type": "string",
+                "description": "A one- or two-line headline of how the shift went: did it run roughly to plan, the overall state, and a rough 1-5 read of how it went, in the leader's own framing. If not covered, say so.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "incident_log": {
+                "type": "string",
+                "description": "The issue log for this shift. For EACH incident or event the leader raised, capture a block with: what happened (their exact words for the machine/part/alarm); what they did about it; current status (fixed / watch / handed-off / still down); rough severity 1-5 if they gave one; whether they said it has happened before recently; and any alarm code, machine ID, or part number ONLY if they volunteered it. One block per incident. If there were no incidents, say so.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "open_items_next_shift": {
+                "type": "string",
+                "description": "What is unresolved, in progress, or that the next shift must do or watch for (e.g. first-article pending, a part mid-cycle, a machine left in a state, a check to repeat). If nothing is open, say so.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "safety_and_workarounds": {
+                "type": "string",
+                "description": "Anything the leader flagged as worth the next person keeping an eye on, and any workaround or shortcut that came up naturally in how they handled something — captured verbatim and neutrally, with no judgment, and ONLY if the leader actually raised it (do not infer or assume). Include any maintenance/PM done or flagged. If none, say so.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "expert_dependencies": {
+                "type": "string",
+                "description": "Who the leader called or leaned on during the shift (by name or role — e.g. Denver, maintenance, a programmer) and what they needed them for. If no one, say so.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "general_chatter": {
+                "type": "string",
+                "description": "Soft signals that are not formal incidents: team mood, material/tooling/supply problems, equipment niggles, or anything the leader flagged as 'off'. If none, say so.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            }
+        },
+        "data_collection_scopes": {},
+        "overrides": {
+            "conversation_config_override": {
+                "asr": {
+                    "keywords": false
+                },
+                "turn": {
+                    "soft_timeout_config": {
+                        "message": false
+                    }
+                },
+                "tts": {
+                    "voice_id": false,
+                    "stability": false,
+                    "speed": false,
+                    "similarity_boost": false
+                },
+                "conversation": {
+                    "text_only": true
+                },
+                "agent": {
+                    "first_message": false,
+                    "language": false,
+                    "max_conversation_duration_message": false,
+                    "prompt": {
+                        "prompt": false,
+                        "llm": false,
+                        "tool_ids": false,
+                        "native_mcp_server_ids": false,
+                        "knowledge_base": false
+                    }
+                }
+            },
+            "custom_llm_extra_body": false,
+            "enable_conversation_initiation_client_data_from_webhook": false,
+            "enable_starting_workflow_node_id_from_client": false
+        },
+        "workspace_overrides": {
+            "webhooks": {
+                "events": [
+                    "transcript"
+                ],
+                "transcript_format": "json",
+                "send_audio": false
+            }
+        },
+        "testing": {
+            "attached_tests": [],
+            "referenced_tests_ids": []
+        },
+        "archived": false,
+        "guardrails": {
+            "version": "1",
+            "focus": {
+                "is_enabled": false
+            },
+            "prompt_injection": {
+                "is_enabled": false
+            },
+            "content": {
+                "execution_mode": "streaming",
+                "config": {
+                    "sexual": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "violence": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "harassment": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "self_harm": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "profanity": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "religion_or_politics": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "medical_and_legal_information": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    }
+                },
+                "trigger_action": {
+                    "type": "end_call"
+                }
+            },
+            "moderation": null,
+            "custom": {
+                "config": {
+                    "configs": []
+                }
+            }
+        },
+        "auth": {
+            "enable_auth": false,
+            "allowlist": [],
+            "require_origin_header": false
+        },
+        "call_limits": {
+            "agent_concurrency_limit": -1,
+            "daily_limit": 100000,
+            "bursting_enabled": true
+        },
+        "ban": null,
+        "smb_metadata": null,
+        "privacy": {
+            "record_voice": true,
+            "retention_days": -1,
+            "delete_transcript_and_pii": false,
+            "delete_audio": false,
+            "apply_to_existing_conversations": false,
+            "zero_retention_mode": false,
+            "conversation_history_redaction": {
+                "enabled": false,
+                "entities": []
+            }
+        },
+        "trust_context": "unknown",
+        "analysis_llm": "claude-sonnet-4-5",
+        "topic_discovery": {
+            "enabled": true
+        },
+        "alerting": null,
+        "overview_dashboard_template_id": null,
+        "safety": {
+            "is_blocked_ivc": false,
+            "is_blocked_non_ivc": false,
+            "ignore_safety_evaluation": false
+        }
+    },
+    "tags": [
+        "interview",
+        "shift-handover",
+        "ati-forge",
+        "mary"
+    ],
+    "workflow": {
+        "edges": {},
+        "nodes": {
+            "start_node": {
+                "type": "start",
+                "position": {
+                    "x": 0,
+                    "y": 0
+                },
+                "edge_order": []
+            }
+        },
+        "prevent_subagent_loops": false
+    }
+}

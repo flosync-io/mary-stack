@@ -1,0 +1,525 @@
+{
+    "name": "phil_the_interviewer",
+    "conversation_config": {
+        "asr": {
+            "quality": "high",
+            "provider": "scribe_realtime",
+            "user_input_audio_format": "pcm_16000",
+            "keywords": [
+                "DMG MORI",
+                "DMC 80",
+                "CELOS",
+                "SINUMERIK",
+                "840D",
+                "fixture",
+                "probing",
+                "offset",
+                "work offset",
+                "tool offset",
+                "G54",
+                "G55",
+                "spindle",
+                "tool changer",
+                "magazine",
+                "chip conveyor",
+                "coolant",
+                "coolant concentration",
+                "refractometer",
+                "reference point",
+                "overtravel",
+                "soft limit",
+                "working area",
+                "collision zone",
+                "alarm",
+                "CNC",
+                "ATI Forge",
+                "Denver",
+                "Dane",
+                "Peter",
+                "Alex",
+                "Joe",
+                "tooling library",
+                "library",
+                "traveler",
+                "fixture revision",
+                "single block",
+                "dry run",
+                "cycle start",
+                "program"
+            ]
+        },
+        "turn": {
+            "turn_timeout": 7,
+            "silence_end_call_timeout": 120,
+            "mode": "turn",
+            "turn_eagerness": "patient",
+            "spelling_patience": "auto",
+            "speculative_turn": false,
+            "retranscribe_on_turn_timeout": false,
+            "turn_model": "turn_v3",
+            "interruption_ignore_terms": [],
+            "transcribe_on_disabled_interruptions": false,
+            "soft_timeout_config": {
+                "timeout_seconds": -1,
+                "message": "Mm-hm, take your time.",
+                "additional_soft_timeout_messages": [],
+                "use_llm_generated_message": false,
+                "randomize_fillers": false,
+                "max_soft_timeouts_per_generation": 1
+            }
+        },
+        "tts": {
+            "model_id": "eleven_flash_v2",
+            "voice_id": "cjVigY5qzO86Huf0OWal",
+            "supported_voices": [],
+            "expressive_mode": false,
+            "suggested_audio_tags": [],
+            "agent_output_audio_format": "pcm_16000",
+            "optimize_streaming_latency": 3,
+            "stability": 0.5,
+            "speed": 1,
+            "similarity_boost": 0.8,
+            "text_normalisation_type": "system_prompt",
+            "pronunciation_dictionary_locators": [],
+            "enable_phoneme_tags": false,
+            "audio_filter": null
+        },
+        "conversation": {
+            "text_only": false,
+            "max_duration_seconds": 1200,
+            "client_events": [
+                "audio",
+                "interruption",
+                "user_transcript",
+                "agent_response",
+                "agent_response_correction"
+            ],
+            "file_input": {
+                "enabled": true,
+                "max_files_per_conversation": 10
+            },
+            "monitoring_enabled": false,
+            "monitoring_events": [
+                "user_transcript",
+                "agent_response",
+                "agent_response_correction"
+            ],
+            "dtmf_input_settings": null,
+            "background_sound": {
+                "volume": 0.6,
+                "crossfade_loop": false
+            },
+            "source_attribution": true
+        },
+        "language_presets": {},
+        "vad": {
+            "background_voice_detection": false
+        },
+        "agent": {
+            "first_message": "Hi, I’m Phil. I’m here to learn where operators get stuck on the floor and what would actually help — not to test or grade anyone. There are no wrong answers. This takes about 15 minutes. To start: what’s the machine or area you spend most of your time on?",
+            "language": "en",
+            "hinglish_mode": false,
+            "dynamic_variables": {
+                "dynamic_variable_placeholders": {}
+            },
+            "disable_first_message_interruptions": false,
+            "max_conversation_duration_message": "",
+            "prompt": {
+                "prompt": "You are Phil, a friendly, practical interviewer who talks to junior machine operators on a manufacturing floor. You are NOT an auditor, manager, trainer, or evaluator, and you never sound like one.\n\n# WHAT THIS INTERVIEW IS FOR (read carefully)\nYou are building a DEMAND-SIDE map of the floor: what problems hurt, how often, when they last happened, what operators call things, and who they depend on when stuck. You are NOT here to learn WHY problems happen or HOW to fix them — that comes later, from a senior expert. Do not try to extract causes, root causes, or repair procedures from a junior operator. If they volunteer a cause or a fix, capture it in their exact words and treat it as an unverified belief — never push to complete or confirm it.\n\n# HARD RULES\n- Ask ONE question at a time. Keep it short and plain.\n- Prefer a recent, real example over a general opinion. (\"When did that last happen? Walk me through it.\")\n- Never quiz, correct, teach, judge, or give advice. You are learning from them.\n- Stay demand-side. Causes and fixes are out of scope.\n- Capture the operator's OWN WORDS for machines, parts, subsystems, and alarms. If they use two different names for the same thing (e.g., 'chiller' and 'coolant unit'), note both as aliases of one thing.\n- If they describe a workaround — including a risky or unofficial one (bypassing an interlock, widening a limit, ignoring an alarm) — capture it plainly as signal. Do NOT endorse it, warn about it, or react. Just record what they said.\n- Depth over breadth. Three problems captured well beat twenty mentioned in passing. Under 15 minutes.\n\n# THE PER-ISSUE LOOP (your core behavior)\nWhen the operator raises a problem, work it through this block before moving on, conversationally (not as a checklist read-aloud):\n1. WHAT it involves — the machine/part/alarm, in their words (capture every name they use for it).\n2. The PROBLEM in their words — the phrase they'd actually say.\n3. HOW OFTEN it happens.\n4. WHEN it last happened.\n5. WHO they call / ask when it happens.\n6. WHAT they do about it themselves right now, if anything.\n7. HOW SURE they are it happens, and whether they have any idea why (capture the 'why' only as their belief, unverified).\nThen up to two follow-ups: 'What happened that time?' and 'What made it hard / who helped?' Then move to the next problem.\n\n# EXPERT DEPENDENCY\nIf the operator names a specific person as who they call/ask — especially if named two or more times — treat that person as a critical knowledge source. Briefly ask what kinds of problems that person is the go-to for. (This tells us who to interview next.)\n\n# SUCCESS\nThe interview succeeds when you have, for the few problems that hurt most: the operator's own words for the thing, how often + when last, who they escalate to, what they do now — and you've identified the experts they depend on. A short interview that nails 3 real problems this way is a success.",
+                "llm": "claude-sonnet-4-6",
+                "enable_reasoning_summary": false,
+                "temperature": 0.4,
+                "max_tokens": -1,
+                "tool_ids": [],
+                "built_in_tools": {
+                    "end_call": {
+                        "type": "system",
+                        "name": "end_call",
+                        "description": "",
+                        "response_timeout_secs": 20,
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "pre_tool_speech": "auto",
+                        "assignments": [],
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "params": {
+                            "system_tool_type": "end_call"
+                        }
+                    },
+                    "update_state": null,
+                    "memory_entry_search": null,
+                    "memory_entry_create": null,
+                    "memory_entry_update": null,
+                    "memory_entry_delete": null,
+                    "agent_prompt_change": null,
+                    "procedure_update": null,
+                    "procedure_create": null,
+                    "procedure_delete": null,
+                    "transfer_to_genesys_chat": null
+                },
+                "enable_parallel_tool_calls": false,
+                "mcp_server_ids": [],
+                "native_mcp_server_ids": [],
+                "knowledge_base": [],
+                "speech_engine": null,
+                "ignore_default_personality": false,
+                "rag": {
+                    "enabled": false,
+                    "embedding_model": "e5_mistral_7b_instruct",
+                    "optional_rag_enabled": false,
+                    "max_vector_distance": 0.6,
+                    "max_documents_length": 50000,
+                    "max_retrieved_rag_chunks_count": 20
+                },
+                "timezone": "America/Chicago",
+                "backup_llm_config": {
+                    "preference": "default"
+                },
+                "cascade_timeout_seconds": 8,
+                "tools": [
+                    {
+                        "type": "system",
+                        "name": "end_call",
+                        "description": "",
+                        "response_timeout_secs": 20,
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "pre_tool_speech": "auto",
+                        "assignments": [],
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "params": {
+                            "system_tool_type": "end_call"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "platform_settings": {
+        "evaluation": {
+            "criteria": [
+                {
+                    "id": "knowledge_gaps_identified",
+                    "name": "Knowledge Gaps Identified",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the interview uncover specific areas where the operator lacks confidence, requires assistance, or struggles to troubleshoot independently?",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "expert_dependencies_identified",
+                    "name": "Expert Dependencies Identified",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the interview identify specific people, roles, or experts that the operator depends on for troubleshooting, setup, or problem solving?",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "real_troubleshooting_stories_collected",
+                    "name": "Real Troubleshooting Stories Collected",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the operator provide at least one concrete example of a real troubleshooting event, machine issue, alarm, setup challenge, or production problem?",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                },
+                {
+                    "id": "training_opportunities_identified",
+                    "name": "Training Opportunities Identified",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the interview reveal skills, procedures, or topics that should be taught earlier, documented better, or included in operator training?",
+                    "use_knowledge_base": false,
+                    "scope": "conversation",
+                    "scoring_mode": "binary",
+                    "max_score": 100
+                }
+            ]
+        },
+        "widget": {
+            "variant": "full",
+            "placement": "bottom-right",
+            "expandable": "never",
+            "avatar": {
+                "type": "orb",
+                "color1": "#2792dc",
+                "color2": "#9ce6e6"
+            },
+            "feedback_mode": "during",
+            "end_feedback": {
+                "type": "rating"
+            },
+            "bg_color": "#ffffff",
+            "text_color": "#000000",
+            "btn_color": "#000000",
+            "btn_text_color": "#ffffff",
+            "border_color": "#e1e1e1",
+            "focus_color": "#000000",
+            "shareable_page_show_terms": true,
+            "terms_text": "#### Terms and conditions\n\nBy clicking \"Agree,\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\nIf you do not wish to have your conversations recorded, please refrain from using this service.",
+            "terms_html": "<h4>Terms and conditions</h4>\n<p>By clicking &quot;Agree,&quot; and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\nIf you do not wish to have your conversations recorded, please refrain from using this service.</p>\n",
+            "show_avatar_when_collapsed": false,
+            "disable_banner": false,
+            "markdown_link_allowed_hosts": [],
+            "markdown_link_include_www": true,
+            "markdown_link_allow_http": true,
+            "mic_muting_enabled": false,
+            "transcript_enabled": false,
+            "text_input_enabled": true,
+            "conversation_mode_toggle_enabled": false,
+            "default_expanded": false,
+            "always_expanded": false,
+            "dismissible": false,
+            "show_agent_status": false,
+            "show_conversation_id": true,
+            "strip_audio_tags": true,
+            "text_contents": {},
+            "styles": {},
+            "language_selector": false,
+            "supports_text_only": true,
+            "language_presets": {}
+        },
+        "data_collection": {
+            "top_knowledge_gaps": {
+                "type": "string",
+                "description": "List the operator's biggest knowledge gaps, situations where they lacked confidence, required assistance, or were unable to troubleshoot independently. Include specific examples when available.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "expert_dependencies": {
+                "type": "string",
+                "description": "List all experts, senior operators, maintenance personnel, engineers, or supervisors that the operator relies on. Include why they are consulted and for which types of problems.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "recurring_troubleshooting_problems": {
+                "type": "string",
+                "description": "List machine issues, alarms, failures, setup challenges, troubleshooting situations, or production problems repeatedly mentioned during the interview.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "hardest_skills_to_learn": {
+                "type": "string",
+                "description": "List machine skills, procedures, concepts, or workflows that the operator described as difficult to learn or master.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "missing_documentation": {
+                "type": "string",
+                "description": "Identify topics where documentation, manuals, training material, work instructions, or troubleshooting guidance appear insufficient or missing.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "tribal_knowledge": {
+                "type": "string",
+                "description": "Capture undocumented tricks, shortcuts, intuition, experience-based knowledge, machine behaviors, or practices that are not formally documented but are important for successful operation.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "day_one_lessons": {
+                "type": "string",
+                "description": "Capture topics, skills, or knowledge that the operator believes every new operator should learn during their first week.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            },
+            "suggested_expert_interviews": {
+                "type": "string",
+                "description": "Identify topics that should be explored with senior operators or subject matter experts. For each topic include why it appears important, what knowledge gap exists, and which expert may be best suited to explain it.",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "allowed_values_dynamic_variable": "",
+                "constant_value": "",
+                "is_omitted": false
+            }
+        },
+        "data_collection_scopes": {
+            "top_knowledge_gaps": "conversation",
+            "expert_dependencies": "conversation",
+            "recurring_troubleshooting_problems": "conversation",
+            "hardest_skills_to_learn": "conversation",
+            "missing_documentation": "conversation",
+            "tribal_knowledge": "conversation",
+            "day_one_lessons": "conversation",
+            "suggested_expert_interviews": "conversation"
+        },
+        "overrides": {
+            "conversation_config_override": {
+                "asr": {
+                    "keywords": false
+                },
+                "turn": {
+                    "soft_timeout_config": {
+                        "message": false
+                    }
+                },
+                "tts": {
+                    "voice_id": false,
+                    "stability": false,
+                    "speed": false,
+                    "similarity_boost": false
+                },
+                "conversation": {
+                    "text_only": true
+                },
+                "agent": {
+                    "first_message": false,
+                    "language": false,
+                    "max_conversation_duration_message": false,
+                    "prompt": {
+                        "prompt": false,
+                        "llm": false,
+                        "tool_ids": false,
+                        "native_mcp_server_ids": false,
+                        "knowledge_base": false
+                    }
+                }
+            },
+            "custom_llm_extra_body": false,
+            "enable_conversation_initiation_client_data_from_webhook": false,
+            "enable_starting_workflow_node_id_from_client": false
+        },
+        "workspace_overrides": {
+            "webhooks": {
+                "events": [
+                    "transcript"
+                ],
+                "transcript_format": "json",
+                "send_audio": false
+            }
+        },
+        "testing": {
+            "attached_tests": [],
+            "referenced_tests_ids": []
+        },
+        "archived": false,
+        "guardrails": {
+            "version": "1",
+            "focus": {
+                "is_enabled": false
+            },
+            "prompt_injection": {
+                "is_enabled": false
+            },
+            "content": {
+                "execution_mode": "streaming",
+                "config": {
+                    "sexual": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "violence": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "harassment": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "self_harm": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "profanity": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "religion_or_politics": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    },
+                    "medical_and_legal_information": {
+                        "is_enabled": false,
+                        "threshold": "medium"
+                    }
+                },
+                "trigger_action": {
+                    "type": "end_call"
+                }
+            },
+            "moderation": null,
+            "custom": {
+                "config": {
+                    "configs": []
+                }
+            }
+        },
+        "auth": {
+            "enable_auth": false,
+            "allowlist": [],
+            "require_origin_header": false
+        },
+        "call_limits": {
+            "agent_concurrency_limit": -1,
+            "daily_limit": 100000,
+            "bursting_enabled": true
+        },
+        "ban": null,
+        "smb_metadata": null,
+        "privacy": {
+            "record_voice": true,
+            "retention_days": -1,
+            "delete_transcript_and_pii": false,
+            "delete_audio": false,
+            "apply_to_existing_conversations": false,
+            "zero_retention_mode": false,
+            "conversation_history_redaction": {
+                "enabled": false,
+                "entities": []
+            }
+        },
+        "trust_context": "unknown",
+        "analysis_llm": "gemini-2.5-flash",
+        "topic_discovery": {
+            "enabled": true
+        },
+        "alerting": null,
+        "overview_dashboard_template_id": null,
+        "safety": {
+            "is_blocked_ivc": false,
+            "is_blocked_non_ivc": false,
+            "ignore_safety_evaluation": false
+        }
+    },
+    "tags": [],
+    "workflow": {
+        "edges": {},
+        "nodes": {
+            "start_node": {
+                "type": "start",
+                "position": {
+                    "x": 0,
+                    "y": 0
+                },
+                "edge_order": []
+            }
+        },
+        "prevent_subagent_loops": false
+    }
+}

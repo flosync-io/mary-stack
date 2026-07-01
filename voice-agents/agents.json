@@ -1,0 +1,16 @@
+{
+    "agents": [
+        {
+            "config": "agent_configs/phil_shift_handover.json",
+            "id": "agent_8901kwcpv7m5ee3t5fmnxbasfsp6",
+            "version_id": "agtvrsn_9001kwcrp3ybf7pspf9ya9rn2zdy",
+            "branch_id": "agtbrch_6301kwcpv9dqefb973srtp6hf1kc"
+        },
+        {
+            "config": "agent_configs/phil_the_interviewer.json",
+            "id": "agent_8801ktnm8ky0egzreywtk9p5aymt",
+            "version_id": "agtvrsn_4301kwcrp63keegs2dpr3w86kt4x",
+            "branch_id": "agtbrch_1501ktnm8mf7f8ksjsnrjh7j5tf6"
+        }
+    ]
+}
