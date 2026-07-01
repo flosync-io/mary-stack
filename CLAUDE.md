@@ -6,6 +6,7 @@ Three blocks around one contract. Nothing integrates them; `schema.json` does.
 - **distill/** — messy sources + resolved sessions → schema-conformant `knowledge.json`.
 - **eval/** — Alex + scripted suite. Tests the deployed Mary against the same knowledge.
 - **backend/** — Supabase edge functions + migrations (the runtime/vault/registry plumbing).
+- **voice-agents/** — local mirror of ElevenLabs conversational agents (Phil interviewers). Upstream source capture, outside the `knowledge.json` contract. See `voice-agents/CLAUDE.md` before pushing — live-push requires the user to say "yes push to prod".
 
 ## Persistence (ADR-0001 — read `docs/adr/` before backend or distill work)
 
