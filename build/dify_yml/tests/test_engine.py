@@ -34,7 +34,7 @@ class Session:
         self.m, self.KJ = m, KJ
         self.cv = {"stage": "INTAKE", "case": "{}", "matched_fm": "", "candidate_causes": "[]",
                    "ruled_out": "[]", "current_cause": "", "current_check": "",
-                   "current_step_idx": 0, "attempts": 0, "clarify_attempts": 0}
+                   "current_step_idx": 0, "attempts": 0, "clarify_attempts": 0, "elicit_attempts": 0}
 
     def turn(self, kind, value, scores=None, flags="{}"):
         sig = {"kind": kind, "text": value, "value": value}
@@ -42,9 +42,10 @@ class Session:
         r = self.m.engine_main(sig, scores or {"scores": []}, g["guard_decision"], g["guard_reason"], self.KJ,
                                self.cv["stage"], self.cv["case"], self.cv["matched_fm"], self.cv["candidate_causes"],
                                self.cv["ruled_out"], self.cv["current_cause"], self.cv["current_check"],
-                               self.cv["current_step_idx"], self.cv["attempts"], 4, flags, self.cv["clarify_attempts"])
+                               self.cv["current_step_idx"], self.cv["attempts"], 4, flags, self.cv["clarify_attempts"],
+                               self.cv["elicit_attempts"])
         for k in ["stage", "case", "matched_fm", "candidate_causes", "ruled_out",
-                  "current_cause", "current_check", "current_step_idx", "attempts", "clarify_attempts"]:
+                  "current_cause", "current_check", "current_step_idx", "attempts", "clarify_attempts", "elicit_attempts"]:
             self.cv[k] = r["out_" + k]
         env = self.m.envelope_main(r["render_brief"], r["out_status"], r["out_options"], r["out_capture"], r["out_trace"], r["allowed_facts"], r["out_modality"], r["out_default"])
         return {"move": r["move_type"], "status": r["out_status"], "terminal": r["terminal"],
@@ -210,10 +211,11 @@ def relative_floor_decision(m, KJ):
     s = Session(m, KJ); s.turn("symptom", "bad finish, tools dying, no alarm")
     r = s.turn("check_answer", "nothing changed", scores={"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.85}]})
     assert r["move"] == "ASK_CHECK", ("high-clear should match", r["move"])
-    # clear leader but below floor (not bunched) -> DECLINE
+    # clear leader but below floor (not bunched) -> ELICIT (probe for more signal; was DECLINE
+    # before the elicitation-clarify build — low score now means "too thin", not "no match")
     s = Session(m, KJ); s.turn("symptom", "vague thing no alarm")
     r = s.turn("check_answer", "nothing changed", scores={"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.30}]})
-    assert r["move"] == "DECLINE" and r["trace"].get("reason") == "no_match_below_floor", ("low-clear should decline", r["move"], r["trace"].get("reason"))
+    assert r["move"] == "ELICIT" and r["trace"].get("reason") == "elicit", ("low-clear should elicit", r["move"], r["trace"].get("reason"))
     # bunched near-tie -> clarify zone (DECLINE w/ bunched reason until #1)
     s = Session(m, KJ); s.turn("symptom", "weird symptom no alarm")
     r = s.turn("check_answer", "nothing changed", scores={"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.82}, {"fm_id": "fm_wrong_tool_data", "score": 0.80}]})
@@ -301,6 +303,181 @@ def clarify_none_of_these_drives_decline(m, KJ):
     assert last["case"]["status"] == "unresolved", ("DECLINE status must be unresolved", last["case"].get("status"))
     assert "SANITY" not in moves, ("rejection must not bounce to SANITY", moves)
     assert moves[-1] != "ASK_CLARIFY", ("must not end on another clarify re-ask", moves)
+
+
+@test
+def sanity_detail_enriches_reported(m, KJ):
+    # A thin first complaint, then symptom detail volunteered at the sanity beat must
+    # fold into reported (verbatim) so MATCH runs on the fuller symptom. sanity_notes
+    # must still hold the full answer (append-to-reported, NOT move).
+    s = Session(m, KJ)
+    r = s.turn("symptom", "machine stopped, red light")
+    assert r["move"] == "SANITY", r["move"]
+    base = r["case"].get("reported", "")
+    assert base, ("reported must be set after first symptom", base)
+    detail = "coolant smells off and the finish has been getting worse"
+    r2 = s.turn("check_answer", detail)
+    rep = r2["case"].get("reported", "")
+    assert detail in rep, ("volunteered detail must enrich reported, verbatim", rep)
+    assert base in rep, ("original complaint must be retained", rep)
+    assert detail in (r2["case"].get("sanity_notes") or []), ("sanity_notes must keep the full answer", r2["case"].get("sanity_notes"))
+
+
+@test
+def sanity_pure_negation_does_not_pollute_reported(m, KJ):
+    # A bare no-change answer adds nothing to the complaint: reported stays put,
+    # but sanity_notes still records it.
+    s = Session(m, KJ)
+    r = s.turn("symptom", "bad finish, tools dying, no alarm")
+    assert r["move"] == "SANITY", r["move"]
+    base = r["case"].get("reported", "")
+    r2 = s.turn("check_answer", "nothing changed")
+    assert r2["case"].get("reported", "") == base, ("pure negation must not pollute reported", base, r2["case"].get("reported"))
+    assert "nothing changed" in (r2["case"].get("sanity_notes") or []), ("sanity_notes still records the negation", r2["case"].get("sanity_notes"))
+
+
+@test
+def vague_low_score_elicits_not_declines(m, KJ):
+    # A vague description of a (possibly known) fault scores below the floor but is NOT
+    # bunched -> the engine must PROBE (ELICIT), not DECLINE and not offer an MCQ CLARIFY.
+    s = Session(m, KJ)
+    s.turn("symptom", "something feels off with the machine")        # -> SANITY
+    r = s.turn("check_answer", "not totally sure", scores={"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.30}]})
+    assert r["move"] == "ELICIT", ("vague low score must elicit, not decline/clarify", r["move"], r["trace"].get("reason"))
+    assert r["trace"].get("reason") == "elicit", r["trace"].get("reason")
+    assert r["envelope"]["modality"] == "free_text", ("ELICIT is an open question, not a menu", r["envelope"].get("modality"))
+    assert r["envelope"]["options"] == [], ("ELICIT must carry no option menu", r["envelope"].get("options"))
+
+
+@test
+def elicit_accumulates_and_converges(m, KJ):
+    # THE CRUX: elicit answers append to reported (accumulation), and MATCH re-scores the
+    # accumulated whole -> once detail pushes the score over the floor, advance to DIAGNOSE.
+    s = Session(m, KJ)
+    s.turn("symptom", "something feels off")                         # -> SANITY
+    r1 = s.turn("check_answer", "hard to say", scores={"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.30}]})
+    assert r1["move"] == "ELICIT", ("round 1 should elicit", r1["move"])
+    rep_before = r1["case"].get("reported", "")
+    # operator volunteers discriminating detail; with it, the fault now scores high
+    detail = "the finish is getting worse and the coolant smells off"
+    r2 = s.turn("symptom", detail, scores={"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.85}]})
+    rep_after = r2["case"].get("reported", "")
+    assert detail in rep_after, ("elicit answer must append to reported (verbatim)", rep_after)
+    assert len(rep_after) > len(rep_before), ("reported must accumulate across turns", rep_before, rep_after)
+    assert r2["move"] == "ASK_CHECK", ("score climbed over floor -> DIAGNOSE", r2["move"], r2["trace"].get("reason"))
+
+
+@test
+def elicit_cap_declines_genuine_unknown(m, KJ):
+    # Genuine unknown: the operator runs dry. The stop is BEHAVIORAL, not score-based -- two
+    # no-new-info rounds in a row (negation/filler) -> DECLINE. The score stays a flat low 0.30
+    # throughout, proving the decision doesn't depend on it.
+    s = Session(m, KJ)
+    s.turn("symptom", "something feels off")                         # -> SANITY
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.30}]}
+    r = s.turn("check_answer", "weird noise", scores=sc)            # ELICIT round 1 (substance)
+    assert r["move"] == "ELICIT", ("round 1", r["move"])
+    r = s.turn("symptom", "nothing", scores=sc)                    # empty #1 -> still probes
+    assert r["move"] == "ELICIT", ("one empty round still probes", r["move"])
+    r = s.turn("symptom", "dunno", scores=sc)                      # empty #2 -> tapped out
+    assert r["move"] == "DECLINE", ("two empty rounds must decline", r["move"], r["trace"].get("reason"))
+    assert r["trace"].get("reason") == "elicit_tapped_out", r["trace"].get("reason")
+    assert r["case"]["status"] == "unresolved", r["case"].get("status")
+
+
+@test
+def elicit_substance_keeps_probing(m, KJ):
+    # The operator keeps adding REAL detail every round, but the (noisy) score stays a flat
+    # low 0.30. Substance must keep it probing -- it must NOT decline early on the flat score
+    # (the old score-delta check would have). It stops only at the hard ELICIT_CAP backstop.
+    s = Session(m, KJ)
+    s.turn("symptom", "something feels off")                         # -> SANITY
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.30}]}
+    r = s.turn("check_answer", "a new rattling noise started", scores=sc)   # ELICIT round 1
+    assert r["move"] == "ELICIT", ("round 1", r["move"])
+    r = s.turn("symptom", "the surface finish looks rougher", scores=sc)    # substance -> round 2
+    assert r["move"] == "ELICIT", ("substance must keep probing on a flat score", r["move"], r["trace"].get("reason"))
+    r = s.turn("symptom", "the parts have a faint oily film", scores=sc)    # substance -> round 3
+    assert r["move"] == "ELICIT", ("round 3", r["move"])
+    r = s.turn("symptom", "and the tools are wearing fast", scores=sc)      # cap backstop
+    assert r["move"] == "DECLINE", ("ELICIT_CAP is the only stop when substance keeps coming", r["move"])
+    assert r["trace"].get("reason") == "elicit_exhausted", r["trace"].get("reason")
+
+
+@test
+def bunched_but_below_floor_elicits_not_clarifies(m, KJ):
+    # The floor gates whether a menu is offered at all. Candidates that are bunched (near-tie)
+    # but ALL below DECLINE_FLOOR are not real candidates -> ELICIT (probe), NOT a CLARIFY menu
+    # of guesses Mary doesn't believe in. Floor is now tested BEFORE bunched.
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.18},
+                     {"fm_id": "fm_chatter", "score": 0.14},
+                     {"fm_id": "fm_part_creeping_mid_cut_clamp_not_holding", "score": 0.06}]}
+    s = Session(m, KJ)
+    s.turn("symptom", "something's a bit off, hard to pin down")     # -> SANITY
+    r = s.turn("check_answer", "not totally sure", scores=sc)
+    assert r["move"] == "ELICIT", ("bunched-but-all-below-floor must probe, not clarify", r["move"], r["trace"].get("reason"))
+    assert r["trace"].get("reason") == "elicit", r["trace"].get("reason")
+    assert r["envelope"]["modality"] == "free_text", ("no menu below the floor", r["envelope"].get("modality"))
+    assert r["envelope"]["options"] == [], ("sub-floor candidates must not be offered as options", r["envelope"].get("options"))
+
+
+@test
+def bunched_above_floor_still_clarifies(m, KJ):
+    # Regression: genuinely plausible bunched candidates (both >= floor) still disambiguate via
+    # the CLARIFY menu. The floor reorder must not touch this path.
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.62},
+                     {"fm_id": "fm_chatter", "score": 0.58}]}
+    s = Session(m, KJ)
+    s.turn("symptom", "bad finish, no alarm")                        # -> SANITY
+    r = s.turn("check_answer", "nothing changed", scores=sc)
+    assert r["move"] == "ASK_CLARIFY", ("bunched-above-floor must still clarify", r["move"], r["trace"].get("reason"))
+    assert len(r["envelope"]["options"]) >= 2, ("clarify must offer the real candidates", r["envelope"].get("options"))
+
+
+@test
+def elicit_other_answers_count_toward_decline(m, KJ):
+    # S8 regression — the test that would have caught the infinite loop.
+    # Interpret tags tapped-out replies ("dunno"/"not sure"/"idk") as kind="other", NOT "symptom".
+    # other-classified answers at ELICIT must increment _elicit_empty (no early-return re-ask), so
+    # two in a row -> DECLINE (elicit_tapped_out). Drive with kind="other", not kind="symptom".
+    sc = {"scores": [{"fm_id": "fm_coolant_concentration_low", "score": 0.20}]}
+    def emp(sess): return json.loads(sess.cv["case"]).get("_elicit_empty", 0)
+
+    # --- core S8 path: two other-empties -> tapped_out DECLINE (must not loop) ---
+    s = Session(m, KJ)
+    s.turn("symptom", "something's off, not sure what")            # -> SANITY
+    r = s.turn("check_answer", "hard to say", scores=sc)           # -> ELICIT round 1
+    assert r["move"] == "ELICIT", ("round 1", r["move"])
+    r = s.turn("other", "dunno", scores=sc)                        # other-empty #1
+    assert r["move"] == "ELICIT", ("one other-empty still probes, must not loop", r["move"])
+    assert emp(s) == 1, ("other answer must increment _elicit_empty", emp(s))
+    r = s.turn("other", "not sure", scores=sc)                     # other-empty #2 -> tapped out
+    assert r["move"] == "DECLINE" and r["trace"].get("reason") == "elicit_tapped_out", ("two other-empties must decline", r["move"], r["trace"].get("reason"))
+    assert r["case"]["status"] == "unresolved", r["case"].get("status")
+
+    # --- empty-string other also increments; substance (kind=symptom) RESETS the counter ---
+    s2 = Session(m, KJ)
+    s2.turn("symptom", "vague thing, no idea")                     # -> SANITY
+    s2.turn("check_answer", "hard to say", scores=sc)             # -> ELICIT round 1
+    r = s2.turn("other", "", scores=sc)                           # empty-after-normalize
+    assert r["move"] == "ELICIT" and emp(s2) == 1, ("empty other must increment", r["move"], emp(s2))
+    r = s2.turn("symptom", "the coolant smells off and the finish is worse", scores=sc)  # real substance
+    assert r["move"] == "ELICIT" and emp(s2) == 0, ("substance must reset _elicit_empty", r["move"], emp(s2))
+
+
+@test
+def guard_terminal_sets_valid_conversation_status(m, KJ):
+    # P0 regression: a turn-1 guard STOP reached the vault writer with conversation status ""
+    # (the case was still {} when the guard short-circuited before case-init) -> vault_status_check
+    # 400 -> the safety refusal never persisted or rendered. The guard terminal must carry a VALID
+    # lifecycle status (unresolved). The MESSAGE status stays "escalated" — a SEPARATE field.
+    for kind, phrase in [("symptom", "I'll just reset and re-run to clear it"),
+                         ("safety_question", "can I just acknowledge it and keep running?")]:
+        s = Session(m, KJ)
+        r = s.turn(kind, phrase)                       # guard short-circuits on turn 1 (case still {})
+        assert r["move"] in ("STOP", "LOTO"), (phrase, r["move"])
+        assert r["case"].get("status") == "unresolved", ("conversation status must be a valid lifecycle value, got %r" % r["case"].get("status"), phrase)
+        assert r["status"] == "escalated", ("message status is a separate field, stays escalated", r["status"], phrase)
 
 
 def main():
